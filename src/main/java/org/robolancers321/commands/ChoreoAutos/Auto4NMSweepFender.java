@@ -32,8 +32,6 @@ public class Auto4NMSweepFender extends SequentialCommandGroup {
 
     this.addCommands(
         // TODO: test this
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         new PathAndIntake(PathPlannerPath.fromChoreoTrajectory("4NM-SweepFender.1")),
         new PathAndMate(PathPlannerPath.fromChoreoTrajectory("4NM-SweepFender.2")),

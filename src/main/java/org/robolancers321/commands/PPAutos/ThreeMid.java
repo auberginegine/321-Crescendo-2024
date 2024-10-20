@@ -37,8 +37,6 @@ public class ThreeMid extends SequentialCommandGroup {
     List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile("3Mid");
 
     this.addCommands(
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         new PathAndShoot(pathGroup.get(0)),
         AutoBuilder.followPath(pathGroup.get(1)),

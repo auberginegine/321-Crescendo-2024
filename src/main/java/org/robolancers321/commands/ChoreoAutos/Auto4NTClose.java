@@ -34,8 +34,6 @@ public class Auto4NTClose extends SequentialCommandGroup {
 
     this.addCommands(
         // TODO: test this
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         new PathAndShoot(PathPlannerPath.fromChoreoTrajectory("4NT-Close.1")),
         new PathAndIntake(PathPlannerPath.fromChoreoTrajectory("4NT-Close.2")),

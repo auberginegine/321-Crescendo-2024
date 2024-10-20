@@ -34,8 +34,6 @@ public class TopTaxi extends SequentialCommandGroup {
     List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile("1TopTaxi");
 
     this.addCommands(
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         AutoBuilder.followPath(pathGroup.get(0)));
   }

@@ -218,14 +218,14 @@ public class RobotContainer {
     // TODO: i think we keep this just in case for teleop
     new Trigger(
             () -> this.driverController.getLeftBumper() && this.driverController.getRightBumper())
-        .onTrue(this.drivetrain.zeroYaw());
+        .onTrue(this.drivetrain.zeroYawCommand());
 
     // TODO: technically we can just pull the bumper state off of the controller inside teleop
     // command but maybe this offers more control programmatically
-    new Trigger(this.driverController::getRightBumper)
-        .whileTrue(new InstantCommand(() -> this.drivetrain.slowMode = true));
-    new Trigger(this.driverController::getRightBumper)
-        .whileFalse(new InstantCommand(() -> this.drivetrain.slowMode = false));
+    // new Trigger(this.driverController::getRightBumper)
+    //     .whileTrue(new InstantCommand(() -> this.drivetrain.slowMode = true));
+    // new Trigger(this.driverController::getRightBumper)
+    //     .whileFalse(new InstantCommand(() -> this.drivetrain.slowMode = false));
 
     new Trigger(this.driverController::getLeftBumper).whileTrue(this.sucker.in());
     new Trigger(this.driverController::getLeftBumper).whileFalse(this.sucker.off());
@@ -428,8 +428,10 @@ public class RobotContainer {
 
     this.autoChooser.addOption(
         "Do Nothing",
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())));
+        Commands.none()
+        // new InstantCommand(
+            // () -> this.drivetrain.zeroYaw(this.drivetrain.getPose().getRotation().getDegrees()))
+            );
     this.autoChooser.setDefaultOption("Score And Sit", new ScoreAndSit());
 
     // this.autoChooser.addOption(

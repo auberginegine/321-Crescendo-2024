@@ -34,8 +34,6 @@ public class Auto4NBSkip extends SequentialCommandGroup {
 
     this.addCommands(
         // TODO: test this
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         new PathAndIntake(PathPlannerPath.fromChoreoTrajectory("4NB-Skip.1")),
         new PathAndMate(PathPlannerPath.fromChoreoTrajectory("4NB-Skip.2")),

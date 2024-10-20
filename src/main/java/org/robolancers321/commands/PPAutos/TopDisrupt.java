@@ -15,8 +15,6 @@ public class TopDisrupt extends SequentialCommandGroup {
     this.drivetrain = Drivetrain.getInstance();
 
     this.addCommands(
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         AutoBuilder.followPath(PathPlannerPath.fromPathFile("TopDisrupt")));
   }

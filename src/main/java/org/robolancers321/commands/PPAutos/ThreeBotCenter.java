@@ -37,8 +37,6 @@ public class ThreeBotCenter extends SequentialCommandGroup {
     // Pose2d startingPose = pathGroup.get(0).getPreviewStartingHolonomicPose();
 
     this.addCommands(
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
 
         // new InstantCommand(() -> this.drivetrain.resetPose(startingPose)),
 

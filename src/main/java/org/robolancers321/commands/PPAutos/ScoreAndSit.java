@@ -28,8 +28,6 @@ public class ScoreAndSit extends SequentialCommandGroup {
     this.flywheel = Flywheel.getInstance();
 
     this.addCommands(
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto());
   }
 }

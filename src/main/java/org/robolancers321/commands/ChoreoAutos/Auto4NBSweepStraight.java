@@ -31,8 +31,6 @@ public class Auto4NBSweepStraight extends SequentialCommandGroup {
 
     this.addCommands(
         // TODO: test this
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         new PathAndShoot(PathPlannerPath.fromChoreoTrajectory("4NB-SweepStraight.1")),
         new PathAndShoot(PathPlannerPath.fromChoreoTrajectory("4NB-SweepStraight.2")),

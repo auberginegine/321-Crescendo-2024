@@ -35,8 +35,6 @@ public class FourBottom extends SequentialCommandGroup {
     List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile("4Bot");
 
     this.addCommands(
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         new PathAndIntake(pathGroup.get(0)),
         new PathAndRetract(pathGroup.get(1)),

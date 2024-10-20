@@ -52,8 +52,6 @@ public class Auto4NMSweepFenderStraightAutoPickup extends SequentialCommandGroup
     this.pathfinderConstraints = new PathConstraints(2.0, 2.0, 2 * Math.PI, Math.PI);
 
     this.addCommands(
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         AutoBuilder.pathfindToPoseFlipped(this.bottomNote, this.pathfinderConstraints, 1.5)
             .raceWith(new IntakeNote()),

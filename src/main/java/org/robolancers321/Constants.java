@@ -37,7 +37,7 @@ public final class Constants {
     public static final double kTrackWidthMeters = Units.inchesToMeters(22.0);
     public static final double kWheelBaseMeters = Units.inchesToMeters(26.0);
 
-    public static final double kMaxSpeedMetersPerSecond = 5.0;
+    public static final double kMaxSpeedMetersPerSecond = 1.0;
     public static final double kMaxOmegaRadiansPerSecond = 1.5 * Math.PI;
 
     public static final double kMaxTeleopSpeedPercent = 1.0;

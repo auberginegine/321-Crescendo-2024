@@ -34,8 +34,6 @@ public class BotTaxi extends SequentialCommandGroup {
     List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile("1BotTaxi");
 
     this.addCommands(
-        new InstantCommand(
-            () -> this.drivetrain.setYaw(this.drivetrain.getPose().getRotation().getDegrees())),
         new ScoreSpeakerFixedAuto(),
         AutoBuilder.followPath(pathGroup.get(0)));
   }
