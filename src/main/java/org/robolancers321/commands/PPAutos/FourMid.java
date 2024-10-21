@@ -1,10 +1,16 @@
 /* (C) Robolancers 2024 */
 package org.robolancers321.commands.PPAutos;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.commands.PathPlannerAuto;
 import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PathPlannerTrajectory;
+import com.pathplanner.lib.pathfinding.Pathfinding;
+
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj2.command.Commands;
 import java.util.List;
 import org.robolancers321.commands.AutoCommands.PathAndIntake;
 import org.robolancers321.commands.AutoCommands.PathAndRetract;
@@ -15,6 +21,7 @@ import org.robolancers321.subsystems.intake.Sucker;
 import org.robolancers321.subsystems.launcher.Flywheel;
 import org.robolancers321.subsystems.launcher.Indexer;
 import org.robolancers321.subsystems.launcher.Pivot;
+
 
 public class FourMid extends SequentialCommandGroup {
   private Drivetrain drivetrain;
@@ -32,9 +39,12 @@ public class FourMid extends SequentialCommandGroup {
     this.indexer = Indexer.getInstance();
     this.flywheel = Flywheel.getInstance();
 
+
+    
     List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile("4Mid");
 
     this.addCommands(
+      Commands.runOnce(() -> this.drivetrain.resetPose(pathGroup.get(0).getStartingDifferentialPose()), this.drivetrain),
         // TODO: test this
         new ScoreSpeakerFixedAuto(),
         new PathAndIntake(pathGroup.get(0)),

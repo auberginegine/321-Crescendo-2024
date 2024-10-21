@@ -28,7 +28,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import swervelib.SwerveDrive;
-import swervelib.parser.SwerveParser;
+import swervelib.parser.SwerveParser; 
+import swervelib.math.SwerveMath;
 
 import java.io.File;
 import java.io.IOException;
@@ -93,9 +94,21 @@ public class Drivetrain extends SubsystemBase {
     this.configureController();
     this.configurePathPlanner();
     this.configureField();
+    this.configureSwerve();
 
-    this.swerveDrive.setHeadingCorrection(true); 
+    // this.swerveDrive.setHeadingCorrection(true); 
     
+  }
+
+  private void configureSwerve() {
+    swerveDrive.setHeadingCorrection(false); // Heading correction should only be used while controlling the robot via angle.
+    swerveDrive.setCosineCompensator(false);//!SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for simulations since it causes discrepancies not seen in real life.
+    swerveDrive.setAngularVelocityCompensation(true,
+                                               false,
+                                               0.1); //Correct for skew that gets worse as angular velocity increases. Start with a coefficient of 0.1.
+    swerveDrive.setModuleEncoderAutoSynchronize(false,
+                                                1); // Enable if you want to resynchronize your absolute encoders and motor encoders periodically when they are not moving.
+    swerveDrive.pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder and push the offsets onto it. Throws warning if not possible
   }
 
   public void zeroYaw() {
@@ -284,11 +297,11 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void driveRobotRelative(ChassisSpeeds speeds) {
-    drive(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond, false);
+    this.drive(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond, false);
   }
 
   public void driveFieldRelative(ChassisSpeeds speeds) {
-    drive(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond, true);
+    this.drive(speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond, true);
   }
 
   public void drive(double forward, double strafe, double rotate, boolean fieldRelative) {
@@ -430,21 +443,33 @@ public class Drivetrain extends SubsystemBase {
           // if (Math.abs(this.getNoteAngle()) > DrivetrainConstants.kHeadingTolerance)
           //   omega += 0.5 * headingControllerOutput;
 
-          Translation2d strafeVec =
-              new Translation2d(
-                      DrivetrainConstants.kMaxTeleopSpeedPercent
-                          * DrivetrainConstants.kMaxSpeedMetersPerSecond
-                          * MathUtil.applyDeadband(
-                              -MathUtils.squareKeepSign(controller.getLeftY()), 0.05)
-                          * multiplier,
-                      DrivetrainConstants.kMaxTeleopSpeedPercent
-                          * DrivetrainConstants.kMaxSpeedMetersPerSecond
-                          * MathUtil.applyDeadband(
-                              MathUtils.squareKeepSign(controller.getLeftX()), 0.05)
-                          * multiplier)
-                  .rotateBy(Rotation2d.fromDegrees(90.0));
+          // Translation2d strafeVec =
+          //     new Translation2d(
+          //             DrivetrainConstants.kMaxTeleopSpeedPercent
+          //                 * DrivetrainConstants.kMaxSpeedMetersPerSecond
+          //                 * MathUtil.applyDeadband(
+          //                     -MathUtils.squareKeepSign(controller.getLeftY()), 0.05)
+          //                 * multiplier,
+          //             DrivetrainConstants.kMaxTeleopSpeedPercent
+          //                 * DrivetrainConstants.kMaxSpeedMetersPerSecond
+          //                 * MathUtil.applyDeadband(
+          //                     MathUtils.squareKeepSign(controller.getLeftX()), 0.05)
+          //                 * multiplier)
+          //         .rotateBy(Rotation2d.fromDegrees(90.0));
+        
+          // ChassisSpeeds speeds = swerveDrive.swerveController.getTargetSpeeds(controller.getLeftY(),
+          //         controller.getLeftX(),
+          //         controller.getRightX() * Math.PI,
+          //         swerveDrive.getOdometryHeading().getRadians(),
+          //         swerveDrive.getMaximumVelocity()); 
 
-          this.drive(strafeVec.getX(), strafeVec.getY(), omega, true);
+                  // driveFieldRelative(speeds);
+
+          Translation2d strafeVec = SwerveMath.scaleTranslation(new Translation2d(
+                            controller.getLeftY() * swerveDrive.getMaximumVelocity(),
+                            controller.getLeftX() * swerveDrive.getMaximumVelocity()), 0.8); 
+
+          this.swerveDrive.drive(strafeVec, Math.pow(controller.getRightX(), 3) * swerveDrive.getMaximumAngularVelocity(), true, false);
         })
         .finallyDo(this::stop);
   }
@@ -561,10 +586,6 @@ public class Drivetrain extends SubsystemBase {
     //     });
   }
 
-  public Command followPath(PathPlannerPath path) {
-    return AutoBuilder.followPath(path);
-  }
-
   public Command pathfindToTrap() {
     return AutoBuilder.pathfindToPose(
         this.getClosestTrapPosition().pose, DrivetrainConstants.kAutoConstraints);
@@ -574,5 +595,22 @@ public class Drivetrain extends SubsystemBase {
   public Command alignToAmp() {
     return AutoBuilder.pathfindThenFollowPath(
         PathPlannerPath.fromPathFile("AmpAlign"), DrivetrainConstants.kAutoConstraints);
+  }
+
+  public Command followPath(PathPlannerPath path) {
+    return followPath(path, false); 
+  }
+
+  public Command followPath(PathPlannerPath path, boolean firstPath) {
+    return runOnce(() -> {
+      PathPlannerPath flippedPath; 
+      System.out.println(MyAlliance.isRed()); 
+      if (MyAlliance.isRed()) {
+        flippedPath = path.flipPath(); 
+      } else {
+        flippedPath = path; 
+      }
+      if (firstPath) resetPose(flippedPath.getPreviewStartingHolonomicPose()); 
+    }).andThen(AutoBuilder.followPath(path)); 
   }
 }
