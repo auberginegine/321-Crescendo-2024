@@ -44,6 +44,8 @@ import swervelib.SwerveModule;
 import swervelib.math.SwerveMath;
 import swervelib.parser.PIDFConfig;
 import swervelib.parser.SwerveParser;
+import swervelib.telemetry.SwerveDriveTelemetry;
+import swervelib.telemetry.SwerveDriveTelemetry.TelemetryVerbosity;
 
 public class Drivetrain extends SubsystemBase {
   /*
@@ -77,6 +79,9 @@ public class Drivetrain extends SubsystemBase {
     swerveDrive =
         new SwerveParser(swerveJsonDirectory)
             .createSwerveDrive(Constants.DrivetrainConstants.kMaxSpeedMetersPerSecond);
+
+
+            SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH; 
 
     this.mainCamera = new PhotonCamera(DrivetrainConstants.kMainCameraName);
     this.noteCamera = new PhotonCamera(DrivetrainConstants.kNoteCameraName);
@@ -360,7 +365,7 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber(
         "drive kf", SmartDashboard.getNumber("drive kf", SwerveParser.pidfPropertiesJson.drive.f));
 
-    SmartDashboard.putNumber("drive target heading", this.getYawDeg());
+    SmartDashboard.putNumber("drive target heading", 0);
     SmartDashboard.putNumber("drive target velocity", 0);
   }
 
@@ -380,7 +385,7 @@ public class Drivetrain extends SubsystemBase {
     double drivingD = SmartDashboard.getNumber("drive kd", SwerveParser.pidfPropertiesJson.drive.d);
     double drivingF = SmartDashboard.getNumber("drive kf", SwerveParser.pidfPropertiesJson.drive.f);
 
-    double targetHeading = SmartDashboard.getNumber("drive target heading", this.getYawDeg());
+    double targetHeading = SmartDashboard.getNumber("drive target heading", 0);
     double targetVelocity = SmartDashboard.getNumber("drive target velocity", 0);
 
     // set new module PIDF values
@@ -391,12 +396,10 @@ public class Drivetrain extends SubsystemBase {
     }
 
     // set desired module states to target states
-    SwerveModuleState[] states = new SwerveModuleState[4];
+    // SwerveModuleState[] states = new SwerveModuleState[4];
     for (int i = 0; i < 4; i++) {
-      states[i] = new SwerveModuleState(targetVelocity, Rotation2d.fromDegrees(targetHeading));
+      modules[i].setDesiredState(new SwerveModuleState(targetVelocity, Rotation2d.fromDegrees(targetHeading)), false, true);
     }
-
-    swerveDrive.setModuleStates(states, false);
 
     // log heading and velocity error
     SwerveModuleState[] currentState = swerveDrive.getStates();
@@ -594,7 +597,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public Command tuneModulesCommand() {
-    return run(this::tuneModules).finallyDo(() -> this.stop());
+    return runOnce(this::initTuning).andThen(run(this::tuneModules)).finallyDo(() -> this.stop());
   }
 
   public Command dangerouslyRunDrive(double speed) {

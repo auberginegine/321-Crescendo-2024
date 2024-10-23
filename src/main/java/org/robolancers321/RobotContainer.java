@@ -158,7 +158,8 @@ public class RobotContainer {
 
   private void configureDefaultCommands() {
     this.drivetrain.setDefaultCommand( // this.drivetrain.tuneModules());
-        this.drivetrain.teleopDrive(driverController, true));
+        // this.drivetrain.teleopDrive(driverController, true));
+        this.drivetrain.tuneModulesCommand()); 
 
     this.sucker.setDefaultCommand(this.sucker.off());
     this.indexer.setDefaultCommand(this.indexer.off());
