@@ -91,7 +91,6 @@ public class Drivetrain extends SubsystemBase {
     this.visionField = new Field2d();
 
     this.configureGyro();
-    this.configureController();
     this.configurePathPlanner();
     this.configureField();
     this.configureSwerve();
@@ -126,16 +125,6 @@ public class Drivetrain extends SubsystemBase {
 
   public void configureGyro() {
     this.zeroYaw();
-  }
-
-  private void configureController() {
-    // TODO: heading shit, will probably be removed with YAGSL
-    // this.headingController.setPID(
-    //     DrivetrainConstants.kHeadingP,
-    //     DrivetrainConstants.kHeadingI,
-    //     DrivetrainConstants.kHeadingD);
-    // this.headingController.enableContinuousInput(-180.0, 180.0);
-    // this.headingController.setTolerance(1.5);
   }
 
   private void configurePathPlanner() {
@@ -375,7 +364,7 @@ public class Drivetrain extends SubsystemBase {
     SmartDashboard.putNumber("drive target velocity", 0);
   }
 
-  private void tune() {
+  private void tuneModules() {
     // get PIDF values, target heading/speed
     double headingP =
         SmartDashboard.getNumber("drive heading kp", SwerveParser.pidfPropertiesJson.angle.p);
@@ -420,11 +409,9 @@ public class Drivetrain extends SubsystemBase {
        * 3 - back right
        */
       SmartDashboard.putNumber(
-          "module " + i + "driving error: ",
-          targetVelocity - currentState[i].speedMetersPerSecond);
+          "module " + i + "driving error: ", targetVelocity - currentState[i].speedMetersPerSecond);
       SmartDashboard.putNumber(
-          "module " + i + "heading error: ",
-          targetHeading - currentState[i].angle.getDegrees());
+          "module " + i + "heading error: ", targetHeading - currentState[i].angle.getDegrees());
     }
 
     // this.headingController.setPID(tunedHeadingP, tunedHeadingI, tunedHeadingD);
@@ -606,37 +593,8 @@ public class Drivetrain extends SubsystemBase {
     return this.turnToAngle(this::getAngleToSpeaker).withTimeout(1.0);
   }
 
-  public Command tuneModules() {
-    // TODO: implement
-    // throw new Exception("Not Implemented");
-    return Commands.none();
-    // SmartDashboard.putNumber("target module angle (deg)", 0.0);
-    // SmartDashboard.putNumber("target module vel (m/s)", 0.0);
-
-    // SwerveModule.initTuning();
-
-    // return run(() -> {
-    //       double theta = SmartDashboard.getNumber("target module angle (deg)", 0.0);
-    //       double vel = SmartDashboard.getNumber("target module vel (m/s)", 0.0);
-
-    //       SwerveModuleState[] states = new SwerveModuleState[4];
-    //       for (int i = 0; i < 4; i++)
-    //         states[i] = new SwerveModuleState(vel, Rotation2d.fromDegrees(theta));
-
-    //       this.frontLeft.tune();
-    //       this.frontRight.tune();
-    //       this.backRight.tune();
-    //       this.backLeft.tune();
-
-    //       this.updateModules(states);
-    //     })
-    //     .finallyDo(() -> this.stop());
-  }
-
-  public Command tuneController(XboxController controller) {
-    this.initTuning();
-
-    return run(this::tune);
+  public Command tuneModulesCommand() {
+    return run(this::tuneModules).finallyDo(() -> this.stop());
   }
 
   public Command dangerouslyRunDrive(double speed) {
