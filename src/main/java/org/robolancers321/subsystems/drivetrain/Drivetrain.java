@@ -8,7 +8,6 @@ import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
 import com.pathplanner.lib.util.PIDConstants;
 import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -36,7 +35,8 @@ import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import org.robolancers321.Constants;
 import org.robolancers321.Constants.DrivetrainConstants;
-import org.robolancers321.util.MathUtils;
+import org.robolancers321.subsystems.drivetrain.signal.DriveSwerveSignal;
+import org.robolancers321.subsystems.drivetrain.signal.SwerveSignal;
 import org.robolancers321.util.MyAlliance;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
@@ -70,6 +70,8 @@ public class Drivetrain extends SubsystemBase {
 
   private final PhotonPoseEstimator visionEstimator;
   private Field2d visionField;
+
+  private SwerveSignal currentSignal = SwerveSignal.empty(); 
 
   private Drivetrain() throws IOException {
 
@@ -120,8 +122,6 @@ public class Drivetrain extends SubsystemBase {
   public void zeroYaw() {
     this.swerveDrive.zeroGyro();
   }
-
-  public void setYaw(double angle) {}
 
   public void configureGyro() {
     this.zeroYaw();
@@ -301,7 +301,13 @@ public class Drivetrain extends SubsystemBase {
   }
 
   public void drive(double forward, double strafe, double rotate, boolean fieldRelative) {
-    this.swerveDrive.drive(new Translation2d(forward, strafe), rotate, fieldRelative, false);
+    setDriveSignal(
+      new DriveSwerveSignal()
+        .withForwardVelocity(forward)
+        .withStrafeVelocity(strafe)
+        .withRotationVelocity(rotate)
+        .withFieldRelative(fieldRelative)
+    );
   }
 
   public boolean seesNote() {
@@ -464,6 +470,8 @@ public class Drivetrain extends SubsystemBase {
     // this.odometry.update(this.gyro.getRotation2d(), this.getModulePositions());
     this.fuseVision();
 
+    this.swerveDrive.drive(this.currentSignal.apply(this));
+
     this.swerveDrive.field.setRobotPose(this.getPose());
 
     this.doSendables();
@@ -482,54 +490,19 @@ public class Drivetrain extends SubsystemBase {
           double multiplier = controller.getRightBumper() ? 0.4 : 1.0;
 
           double omega =
-              -DrivetrainConstants.kMaxTeleopRotationPercent
-                  * DrivetrainConstants.kMaxOmegaRadiansPerSecond
-                  * MathUtil.applyDeadband(MathUtils.squareKeepSign(controller.getRightX()), 0.05)
+          Math.pow(controller.getRightX(), 3) * swerveDrive.getMaximumAngularVelocity()
                   * multiplier;
-
-          // TODO: uncomment for aim assist
-
-          // double headingControllerOutput =
-          //     -this.headingController.calculate(this.getNoteAngle(), 0.0);
-
-          // if (Math.abs(this.getNoteAngle()) > DrivetrainConstants.kHeadingTolerance)
-          //   omega += 0.5 * headingControllerOutput;
-
-          // Translation2d strafeVec =
-          //     new Translation2d(
-          //             DrivetrainConstants.kMaxTeleopSpeedPercent
-          //                 * DrivetrainConstants.kMaxSpeedMetersPerSecond
-          //                 * MathUtil.applyDeadband(
-          //                     -MathUtils.squareKeepSign(controller.getLeftY()), 0.05)
-          //                 * multiplier,
-          //             DrivetrainConstants.kMaxTeleopSpeedPercent
-          //                 * DrivetrainConstants.kMaxSpeedMetersPerSecond
-          //                 * MathUtil.applyDeadband(
-          //                     MathUtils.squareKeepSign(controller.getLeftX()), 0.05)
-          //                 * multiplier)
-          //         .rotateBy(Rotation2d.fromDegrees(90.0));
-
-          // ChassisSpeeds speeds =
-          // swerveDrive.swerveController.getTargetSpeeds(controller.getLeftY(),
-          //         controller.getLeftX(),
-          //         controller.getRightX() * Math.PI,
-          //         swerveDrive.getOdometryHeading().getRadians(),
-          //         swerveDrive.getMaximumVelocity());
-
-          // driveFieldRelative(speeds);
 
           Translation2d strafeVec =
               SwerveMath.scaleTranslation(
                   new Translation2d(
                       controller.getLeftY() * swerveDrive.getMaximumVelocity(),
-                      controller.getLeftX() * swerveDrive.getMaximumVelocity()),
+                      -controller.getLeftX() * swerveDrive.getMaximumVelocity()),
                   0.8);
 
-          this.swerveDrive.drive(
-              strafeVec,
-              Math.pow(controller.getRightX(), 3) * swerveDrive.getMaximumAngularVelocity(),
-              true,
-              false);
+          if (MyAlliance.isRed()) strafeVec = strafeVec.rotateBy(Rotation2d.fromDegrees(180)); 
+
+          this.drive(strafeVec.getX(), strafeVec.getY(), omega, fieldCentric);
         })
         .finallyDo(this::stop);
   }
@@ -661,5 +634,24 @@ public class Drivetrain extends SubsystemBase {
   public Command sysIdAngleMotorCommand() {
     return SwerveDriveTest.generateSysIdCommand(
         SwerveDriveTest.setAngleSysIdRoutine(new Config(), this, swerveDrive), 3.0, 5.0, 3.0);
+  }
+
+  public SwerveDrive getSwerveDrive() {
+    return this.swerveDrive; 
+  }
+
+  // get rotation based on the direction the driver is facing
+  public Rotation2d getDriverBasedRotation() {
+    return getPose().getRotation().rotateBy(Rotation2d.fromDegrees(MyAlliance.isRed() ? 180 : 0)); 
+  }
+
+  // override the current drive signal
+  public void setDriveSignal(SwerveSignal signal) {
+    this.currentSignal = signal; 
+  }
+
+  // add a signal on top of the current drive signal
+  public void addDriveSignal(SwerveSignal signal) {
+    this.currentSignal = this.currentSignal.with(signal); 
   }
 }
