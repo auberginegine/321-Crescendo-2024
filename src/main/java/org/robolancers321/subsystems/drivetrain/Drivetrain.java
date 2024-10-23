@@ -11,6 +11,7 @@ import com.pathplanner.lib.util.PathPlannerLogging;
 import com.pathplanner.lib.util.ReplanningConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -28,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import swervelib.SwerveDrive;
+import swervelib.parser.SwerveDriveConfiguration;
 import swervelib.parser.SwerveParser; 
 import swervelib.math.SwerveMath;
 
@@ -344,26 +346,48 @@ public class Drivetrain extends SubsystemBase {
   private void initTuning() {
     SmartDashboard.putNumber(
         "drive heading kp",
-        SmartDashboard.getNumber("drive heading kp", DrivetrainConstants.kHeadingP));
+        SmartDashboard.getNumber("drive heading kp", swerveDrive.getSwerveController().config.headingPIDF.p));
     SmartDashboard.putNumber(
         "drive heading ki",
-        SmartDashboard.getNumber("drive heading ki", DrivetrainConstants.kHeadingI));
+        SmartDashboard.getNumber("drive heading ki", swerveDrive.getSwerveController().config.headingPIDF.i));
     SmartDashboard.putNumber(
         "drive heading kd",
-        SmartDashboard.getNumber("drive heading kd", DrivetrainConstants.kHeadingD));
+        SmartDashboard.getNumber("drive heading kd", swerveDrive.getSwerveController().config.headingPIDF.d));
+
+    // SmartDashboard.putNumber(
+    //     "drive heading kf",
+    //     SmartDashboard.getNumber("drive heading kf", swerveDrive.getSwerveController().config.headingPIDF.f));
 
     SmartDashboard.putNumber("drive target heading", this.getYawDeg());
+    SmartDashboard.putNumber("drive target velocity", 0);
   }
 
   private void tune() {
-    // TODO: implement
-    // throw new Exception("Not Implemented"); 
-    // double tunedHeadingP =
-    //     SmartDashboard.getNumber("drive heading kp", DrivetrainConstants.kHeadingP);
-    // double tunedHeadingI =
-    //     SmartDashboard.getNumber("drive heading ki", DrivetrainConstants.kHeadingI);
-    // double tunedHeadingD =
-    //     SmartDashboard.getNumber("drive heading kd", DrivetrainConstants.kHeadingD);
+    //get PIDF values, target heading/speed
+    double tunedHeadingP =
+        SmartDashboard.getNumber("drive heading kp", swerveDrive.getSwerveController().config.headingPIDF.p);
+    double tunedHeadingI =
+        SmartDashboard.getNumber("drive heading ki", swerveDrive.getSwerveController().config.headingPIDF.i);
+    double tunedHeadingD =
+        SmartDashboard.getNumber("drive heading kd", swerveDrive.getSwerveController().config.headingPIDF.d);
+      
+    // double tunedHeadingF =
+    //     SmartDashboard.getNumber("drive heading kf", swerveDrive.getSwerveController().config.headingPIDF.f);
+
+    double targetHeading = SmartDashboard.getNumber("drive target heading", this.getYawDeg());
+    double targetVelocity = SmartDashboard.getNumber("drive target velocity", 0);
+
+    swerveDrive.swerveController.thetaController.setPID(tunedHeadingP, tunedHeadingI, tunedHeadingD);
+
+    SwerveModuleState[] states = new SwerveModuleState[4];
+    for (int i = 0; i < 4; i++){  
+      states[i] = new SwerveModuleState(targetVelocity, Rotation2d.fromDegrees(targetHeading));
+    }
+
+    swerveDrive.setModuleStates(states, false);
+
+
+    
 
     // this.headingController.setPID(tunedHeadingP, tunedHeadingI, tunedHeadingD);
 
