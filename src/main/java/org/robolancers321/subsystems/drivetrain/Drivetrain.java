@@ -420,10 +420,10 @@ public class Drivetrain extends SubsystemBase {
        * 3 - back right
        */
       SmartDashboard.putNumber(
-          "drive module " + i + "driving error: ",
+          "module " + i + "driving error: ",
           targetVelocity - currentState[i].speedMetersPerSecond);
       SmartDashboard.putNumber(
-          "drive module " + i + "heading error: ",
+          "module " + i + "heading error: ",
           targetHeading - currentState[i].angle.getDegrees());
     }
 
