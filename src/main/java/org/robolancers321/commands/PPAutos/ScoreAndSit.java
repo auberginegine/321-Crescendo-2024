@@ -1,7 +1,6 @@
 /* (C) Robolancers 2024 */
 package org.robolancers321.commands.PPAutos;
 
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import org.robolancers321.commands.ScoreSpeakerFixedAuto;
 import org.robolancers321.subsystems.drivetrain.Drivetrain;
@@ -27,7 +26,6 @@ public class ScoreAndSit extends SequentialCommandGroup {
     this.indexer = Indexer.getInstance();
     this.flywheel = Flywheel.getInstance();
 
-    this.addCommands(
-        new ScoreSpeakerFixedAuto());
+    this.addCommands(new ScoreSpeakerFixedAuto());
   }
 }

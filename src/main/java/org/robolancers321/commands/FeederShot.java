@@ -21,7 +21,6 @@ public class FeederShot extends ParallelCommandGroup {
     this.indexer = Indexer.getInstance();
     this.flywheel = Flywheel.getInstance();
 
-    this.addCommands(
-        flywheel.revFeeder(), pivot.aimAtSpeakerFixed(), Commands.idle());
+    this.addCommands(flywheel.revFeeder(), pivot.aimAtSpeakerFixed(), Commands.idle());
   }
 }
