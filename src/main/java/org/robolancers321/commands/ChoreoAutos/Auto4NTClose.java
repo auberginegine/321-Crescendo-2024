@@ -33,6 +33,7 @@ public class Auto4NTClose extends SequentialCommandGroup {
 
     this.addCommands(
         // TODO: test this
+        Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromChoreoTrajectory("4NT-Close.1")),
         new ScoreSpeakerFixedAuto(),
         new PathAndShoot(PathPlannerPath.fromChoreoTrajectory("4NT-Close.1")),
         new PathAndIntake(PathPlannerPath.fromChoreoTrajectory("4NT-Close.2")),

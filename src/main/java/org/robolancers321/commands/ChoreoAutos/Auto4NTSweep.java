@@ -30,6 +30,7 @@ public class Auto4NTSweep extends SequentialCommandGroup {
 
     this.addCommands(
         // TODO: test this
+        Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromChoreoTrajectory("4NT-Sweep.1")),
         new ScoreSpeakerFixedAuto(),
         new PathAndShoot(PathPlannerPath.fromChoreoTrajectory("4NT-Sweep.1")),
         new PathAndShoot(PathPlannerPath.fromChoreoTrajectory("4NT-Sweep.2")),

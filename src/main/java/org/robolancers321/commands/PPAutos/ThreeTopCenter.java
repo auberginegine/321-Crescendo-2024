@@ -40,6 +40,7 @@ public class ThreeTopCenter extends SequentialCommandGroup {
         // new InstantCommand(() -> this.drivetrain.resetPose(startingPose)),
 
         // AutoBuilder.buildAuto("3TopCenter")
+        Drivetrain.getInstance().zeroToPath(pathGroup.get(0)),
         new ScoreSpeakerFixedAuto(),
         new PathAndIntake(pathGroup.get(0)),
         new PathAndRetract(pathGroup.get(1)),

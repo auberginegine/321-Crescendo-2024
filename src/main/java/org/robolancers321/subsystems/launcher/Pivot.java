@@ -122,24 +122,24 @@ public class Pivot extends SubsystemBase {
   }
 
   protected void useOutput(TrapezoidProfile.State setpoint) {
-    double feedforwardOutput =
-        this.feedforwardController.calculate(
-            setpoint.position * Math.PI / 180.0, setpoint.velocity * Math.PI / 180.0);
+    // double feedforwardOutput =
+    //     this.feedforwardController.calculate(
+    //         setpoint.position * Math.PI / 180.0, setpoint.velocity * Math.PI / 180.0);
 
-    SmartDashboard.putNumber("pivot position setpoint mp (deg)", setpoint.position);
-    SmartDashboard.putNumber("pivot velocity setpoint mp (deg)", setpoint.velocity);
+    // SmartDashboard.putNumber("pivot position setpoint mp (deg)", setpoint.position);
+    // SmartDashboard.putNumber("pivot velocity setpoint mp (deg)", setpoint.velocity);
 
-    SmartDashboard.putNumber("pivot ff output", feedforwardOutput);
+    // SmartDashboard.putNumber("pivot ff output", feedforwardOutput);
 
-    double feedbackOutput = feedbackController.calculate(this.getPositionDeg(), setpoint.position);
+    // double feedbackOutput = feedbackController.calculate(this.getPositionDeg(), setpoint.position);
 
-    SmartDashboard.putNumber("pivot fb output", feedbackOutput);
+    // SmartDashboard.putNumber("pivot fb output", feedbackOutput);
 
-    double controllerOutput = feedforwardOutput + feedbackOutput;
+    // double controllerOutput = feedforwardOutput + feedbackOutput;
 
-    SmartDashboard.putNumber("pivot controller output", controllerOutput);
+    // SmartDashboard.putNumber("pivot controller output", controllerOutput);
 
-    this.motor.set(controllerOutput);
+    // this.motor.set(controllerOutput);
   }
 
   public void doSendables() {

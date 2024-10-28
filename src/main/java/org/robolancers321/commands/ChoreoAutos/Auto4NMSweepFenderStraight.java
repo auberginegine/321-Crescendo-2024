@@ -32,6 +32,7 @@ public class Auto4NMSweepFenderStraight extends SequentialCommandGroup {
     this.addCommands(
         // TODO: test this
         // new ScoreSpeakerFixedAuto(),
+        Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromChoreoTrajectory("4NM-SweepFenderStraight.1")),
         new ScoreSpeakerFromDistance().onlyIf(this.indexer::entranceBeamBroken),
         new PathAndIntake(PathPlannerPath.fromChoreoTrajectory("4NM-SweepFenderStraight.1")),
         new PathAndMate(PathPlannerPath.fromChoreoTrajectory("4NM-SweepFenderStraight.2")),

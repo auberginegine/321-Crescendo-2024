@@ -1,6 +1,7 @@
 /* (C) Robolancers 2024 */
 package org.robolancers321.commands.AutoCommands;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
@@ -22,6 +23,6 @@ public class PathAndIntake extends SequentialCommandGroup {
     this.addCommands(
         retractor.moveToIntake().withTimeout(0.5),
         new ParallelRaceGroup(
-            Drivetrain.getInstance().followPath(path, true), new IntakeNoteManual()));
+            AutoBuilder.followPath(path), new IntakeNoteManual()));
   }
 }

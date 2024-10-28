@@ -33,6 +33,7 @@ public class Auto4NBSkip extends SequentialCommandGroup {
 
     this.addCommands(
         // TODO: test this
+        Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromChoreoTrajectory("4NB-Skip.1")),
         new ScoreSpeakerFixedAuto(),
         new PathAndIntake(PathPlannerPath.fromChoreoTrajectory("4NB-Skip.1")),
         new PathAndMate(PathPlannerPath.fromChoreoTrajectory("4NB-Skip.2")),

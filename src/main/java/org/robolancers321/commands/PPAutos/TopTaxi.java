@@ -32,6 +32,8 @@ public class TopTaxi extends SequentialCommandGroup {
 
     List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile("1TopTaxi");
 
-    this.addCommands(new ScoreSpeakerFixedAuto(), AutoBuilder.followPath(pathGroup.get(0)));
+    this.addCommands(
+      Drivetrain.getInstance().zeroToPath(pathGroup.get(0)),  
+    new ScoreSpeakerFixedAuto(), AutoBuilder.followPath(pathGroup.get(0)));
   }
 }

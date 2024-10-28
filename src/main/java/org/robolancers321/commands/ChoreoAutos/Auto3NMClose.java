@@ -33,6 +33,7 @@ public class Auto3NMClose extends SequentialCommandGroup {
 
     this.addCommands(
         // TODO: test this
+        Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromChoreoTrajectory("3NM-Close.1")),
         new ScoreSpeakerFixedAuto(),
         new PathAndShoot(PathPlannerPath.fromChoreoTrajectory("3NM-Close.1")),
         new PathAndIntake(PathPlannerPath.fromChoreoTrajectory("3NM-Close.2")),

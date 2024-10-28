@@ -525,8 +525,10 @@ public class Drivetrain extends SubsystemBase {
               SwerveMath.scaleTranslation(
                   new Translation2d(
                       controller.getLeftY() * swerveDrive.getMaximumVelocity(),
-                      controller.getLeftX() * swerveDrive.getMaximumVelocity()),
+                      -controller.getLeftX() * swerveDrive.getMaximumVelocity()),
                   0.8);
+
+                  if (MyAlliance.isRed()) strafeVec = strafeVec.rotateBy(Rotation2d.fromDegrees(180));
 
           this.swerveDrive.drive(
               strafeVec,
@@ -645,7 +647,6 @@ public class Drivetrain extends SubsystemBase {
     return runOnce(
             () -> {
               PathPlannerPath flippedPath;
-              System.out.println(MyAlliance.isRed());
               if (MyAlliance.isRed()) {
                 flippedPath = path.flipPath();
               } else {
@@ -654,6 +655,23 @@ public class Drivetrain extends SubsystemBase {
               if (firstPath) resetPose(flippedPath.getPreviewStartingHolonomicPose());
             })
         .andThen(AutoBuilder.followPath(path));
+  }
+
+  public Command zeroToPose(Pose2d pose) {
+    return runOnce(
+            () -> {
+              Pose2d flippedPose;
+              if (MyAlliance.isRed()) {
+                flippedPose = GeometryUtil.flipFieldPose(pose);
+              } else {
+                flippedPose = pose;
+              }
+              resetPose(flippedPose);
+            }); 
+  }
+
+  public Command zeroToPath(PathPlannerPath path) {
+    return zeroToPose(path.getPreviewStartingHolonomicPose()); 
   }
 
   public Command sysIdDriveMotorCommand() {

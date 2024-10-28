@@ -35,9 +35,7 @@ public class FourMid extends SequentialCommandGroup {
     List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile("4Mid");
 
     this.addCommands(
-        Commands.runOnce(
-            () -> this.drivetrain.resetPose(pathGroup.get(0).getStartingDifferentialPose()),
-            this.drivetrain),
+        Drivetrain.getInstance().zeroToPath(pathGroup.get(0)),
         // TODO: test this
         new ScoreSpeakerFixedAuto(),
         new PathAndIntake(pathGroup.get(0)),

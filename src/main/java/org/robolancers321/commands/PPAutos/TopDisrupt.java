@@ -1,6 +1,7 @@
 /* (C) Robolancers 2024 */
 package org.robolancers321.commands.PPAutos;
 
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import org.robolancers321.commands.ScoreSpeakerFixedAuto;
@@ -13,7 +14,8 @@ public class TopDisrupt extends SequentialCommandGroup {
     this.drivetrain = Drivetrain.getInstance();
 
     this.addCommands(
+      Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromPathFile("TopDisrupt")),
         new ScoreSpeakerFixedAuto(),
-        drivetrain.followPath(PathPlannerPath.fromPathFile("TopDisrupt"), true));
+        AutoBuilder.followPath(PathPlannerPath.fromPathFile("TopDisrupt")));
   }
 }
