@@ -100,6 +100,8 @@ public class Drivetrain extends SubsystemBase {
     this.configureField();
     this.configureSwerve();
 
+    System.out.println(this.swerveDrive.getModules()[0].configuration.conversionFactors.angle);
+
     // this.swerveDrive.setHeadingCorrection(true);
 
   }
@@ -111,7 +113,7 @@ public class Drivetrain extends SubsystemBase {
         false); // !SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for
     // simulations since it causes discrepancies not seen in real life.
     swerveDrive.setAngularVelocityCompensation(
-        true, false,
+        false, false,
         0.1); // Correct for skew that gets worse as angular velocity increases. Start with a
     // coefficient of 0.1.
     swerveDrive.setModuleEncoderAutoSynchronize(
@@ -467,7 +469,7 @@ public class Drivetrain extends SubsystemBase {
     // this.odometry.update(this.gyro.getRotation2d(), this.getModulePositions());
     this.fuseVision();
 
-    this.swerveDrive.field.setRobotPose(this.getPose());
+    // this.swerveDrive.field.setRobotPose(this.getPose());
 
     this.doSendables();
   }
@@ -485,7 +487,7 @@ public class Drivetrain extends SubsystemBase {
           double multiplier = controller.getRightBumper() ? 0.4 : 1.0;
 
           double omega =
-              -DrivetrainConstants.kMaxTeleopRotationPercent
+              DrivetrainConstants.kMaxTeleopRotationPercent
                   * DrivetrainConstants.kMaxOmegaRadiansPerSecond
                   * MathUtil.applyDeadband(MathUtils.squareKeepSign(controller.getRightX()), 0.05)
                   * multiplier;
@@ -524,15 +526,15 @@ public class Drivetrain extends SubsystemBase {
           Translation2d strafeVec =
               SwerveMath.scaleTranslation(
                   new Translation2d(
-                      controller.getLeftY() * swerveDrive.getMaximumVelocity(),
+                      -controller.getLeftY() * swerveDrive.getMaximumVelocity(),
                       -controller.getLeftX() * swerveDrive.getMaximumVelocity()),
                   0.8);
 
-                  if (MyAlliance.isRed()) strafeVec = strafeVec.rotateBy(Rotation2d.fromDegrees(180));
+          if (MyAlliance.isRed()) strafeVec = strafeVec.rotateBy(Rotation2d.fromDegrees(180));
 
           this.swerveDrive.drive(
               strafeVec,
-              Math.pow(controller.getRightX(), 3) * swerveDrive.getMaximumAngularVelocity(),
+              -Math.pow(controller.getRightX(), 3) * swerveDrive.getMaximumAngularVelocity(),
               true,
               false);
         })

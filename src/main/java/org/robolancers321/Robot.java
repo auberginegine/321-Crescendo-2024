@@ -22,7 +22,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void robotPeriodic() {
-    // VirtualSubsystem.periodicAll();
+    VirtualSubsystem.periodicAll();
     CommandScheduler.getInstance().run();
   }
 

@@ -27,7 +27,8 @@ public final class Constants {
 
     public static final Transform3d kRobotToCameraTransform =
         new Transform3d(
-            -0.35, 0, 0.516, new Rotation3d(0, -31.5 * Math.PI / 180.0, Math.PI)); // 0.34, 0 ,-0.48
+          // TODO: see if this is correct
+            -0.35, 0, 0.516, new Rotation3d(Math.PI, -31.5 * Math.PI / 180.0, Math.PI)); // 0.34, 0 ,-0.48
     // 0.33, 0.513
     public static final double kNoteCameraMountHeight =
         Units.inchesToMeters(11.0); // rough estimate of camera height while mounted on crate
