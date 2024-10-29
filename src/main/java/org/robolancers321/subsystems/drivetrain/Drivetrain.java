@@ -105,6 +105,7 @@ public class Drivetrain extends SubsystemBase {
   }
 
   private void configureSwerve() {
+    swerveDrive.swerveController.setMaximumAngularVelocity(Constants.DrivetrainConstants.kMaxOmegaRadiansPerSecond);
     swerveDrive.setHeadingCorrection(
         false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(
@@ -457,6 +458,8 @@ public class Drivetrain extends SubsystemBase {
           this.swerveDrive.getModules()[i].getState().speedMetersPerSecond);
     }
 
+    SmartDashboard.putNumber("Max angular drive speed", swerveDrive.getMaximumAngularVelocity());
+
     // Translation2d notePose = this.getRelativeNoteLocation();
 
     // SmartDashboard.putNumber("note pose x", notePose.getX());
@@ -525,8 +528,8 @@ public class Drivetrain extends SubsystemBase {
           Translation2d strafeVec =
               SwerveMath.scaleTranslation(
                   new Translation2d(
-                      -controller.getLeftY() * swerveDrive.getMaximumVelocity(),
-                      -controller.getLeftX() * swerveDrive.getMaximumVelocity()),
+                      -MathUtil.applyDeadband(controller.getLeftY(), 0.03) * swerveDrive.getMaximumVelocity(),
+                      -MathUtil.applyDeadband(controller.getLeftX(), 0.03) * swerveDrive.getMaximumVelocity()),
                   0.8);
 
           if (MyAlliance.isRed()) strafeVec = strafeVec.rotateBy(Rotation2d.fromDegrees(180));

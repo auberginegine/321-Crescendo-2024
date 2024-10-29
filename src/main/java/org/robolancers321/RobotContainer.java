@@ -102,7 +102,7 @@ public class RobotContainer {
     this.configureEvents();
     this.configureLEDs();
     this.configureDefaultCommands();
-    this.configureDriverController(); // TODO: test new controls
+    this.configureDriverController_old(); // TODO: test new controls
     this.configureManipulatorController();
     this.configureAuto();
   }
@@ -128,11 +128,11 @@ public class RobotContainer {
     LED.registerSignal(
         2,
         () -> epsilonEquals(this.retractor.getPositionDeg(), RetractorSetpoint.kIntake.angle, 30),
-        LED.solid(Section.FULL, new Color(255, 255, 255)));
+        LED.solid(Section.FULL, new Color(255, 80, 0)));
 
     // note in sucker, solid white
     LED.registerSignal(
-        3, this.sucker::noteDetected, LED.solid(Section.FULL, new Color(90, 90, 150)));
+        3, this.sucker::noteDetected, LED.solid(Section.FULL, new Color(255, 255, 255)));
 
     // flywheel is revving, solid yellow
     LED.registerSignal(
@@ -141,16 +141,14 @@ public class RobotContainer {
             (!this.flywheel.isRevved()
                 && this.flywheel.getGoalRPM()
                     > FlywheelConstants.FlywheelSetpoint.kAcceptHandoff.rpm),
-        LED.solid(Section.FULL, new Color(150, 255, 0)));
+        LED.solid(Section.FULL, new Color(255, 160, 0)));
 
     // flywheel is revved, solid green
     LED.registerSignal(
         5,
         () ->
-            (this.pivot.atGoal()
-                && this.flywheel.isRevved()
-                && this.flywheel.getGoalRPM()
-                    > FlywheelConstants.FlywheelSetpoint.kAcceptHandoff.rpm),
+            (this.flywheel.isRevved()
+              && this.flywheel.getGoalRPM() >= FlywheelConstants.FlywheelSetpoint.kAcceptHandoff.rpm),
         LED.solid(Section.FULL, new Color(0, 255, 0)));
 
     LED.registerSignal(
@@ -548,21 +546,20 @@ public class RobotContainer {
 
     // pathplanner
     this.autoChooser.addOption("4 piece mid", new FourMid());
-    this.autoChooser.addOption("score and taxi top", new TopTaxi());
-    this.autoChooser.addOption("score and taxi bottom", new BotTaxi());
+    this.autoChooser.addOption("AMP score & taxi", new TopTaxi());
+    this.autoChooser.addOption("SOURCE Score & taxi", new BotTaxi());
 
-    this.autoChooser.addOption("4 piece top", new FourTop());
-    this.autoChooser.addOption("4 piece top second note", new FourTopAlt());
+    this.autoChooser.addOption("AMP 3 piece", new FourTop());
+    this.autoChooser.addOption("AMP 3 piece 2", new FourTopAlt());
+    this.autoChooser.addOption("AMP straight to center", new ThreeTopCenter());
 
-    this.autoChooser.addOption("3 piece bottom", new FourBottom());
-    this.autoChooser.addOption("3 piece top center only", new ThreeTopCenter());
+    this.autoChooser.addOption("SOURCE 3 piece", new FourBottom());
+    this.autoChooser.addOption("SOURCE straight to center", new ThreeBotCenter());
+    this.autoChooser.addOption("SOURCE straight to center 2", new ThreeBotCenterAlt());
 
-    this.autoChooser.addOption("3 piece bottom center only", new ThreeBotCenter());
-    this.autoChooser.addOption("3 piece bottom center only second note", new ThreeBotCenterAlt());
-
-    this.autoChooser.addOption("top chaos", new TopDisrupt());
-    this.autoChooser.addOption("bottom chaos", new BotDisrupt());
-    this.autoChooser.addOption("bottom chaos with pickup", new BotDisruptWithPickup());
+    this.autoChooser.addOption("AMP CHAOS >:)", new TopDisrupt());
+    this.autoChooser.addOption("SOURCE chaos >:)", new BotDisrupt());
+    this.autoChooser.addOption("SOURCE chaos with pickup >:)", new BotDisruptWithPickup());
 
     // this.autoChooser.addOption("2 piece mid", new Close3M());
 
