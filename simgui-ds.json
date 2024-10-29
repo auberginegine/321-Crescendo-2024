@@ -12,8 +12,8 @@
           "incKey": 68
         },
         {
-          "decKey": 83,
-          "incKey": 87
+          "decKey": 87,
+          "incKey": 83
         },
         {
           "decKey": 69,
@@ -23,8 +23,8 @@
         },
         {},
         {
-          "decKey": 262,
-          "incKey": 263
+          "decKey": 263,
+          "incKey": 262
         }
       ],
       "axisCount": 5,

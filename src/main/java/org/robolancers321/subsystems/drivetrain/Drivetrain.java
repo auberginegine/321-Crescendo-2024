@@ -100,8 +100,6 @@ public class Drivetrain extends SubsystemBase {
     this.configureField();
     this.configureSwerve();
 
-    System.out.println(this.swerveDrive.getModules()[0].configuration.conversionFactors.angle);
-
     // this.swerveDrive.setHeadingCorrection(true);
 
   }
@@ -113,12 +111,13 @@ public class Drivetrain extends SubsystemBase {
         false); // !SwerveDriveTelemetry.isSimulation); // Disables cosine compensation for
     // simulations since it causes discrepancies not seen in real life.
     swerveDrive.setAngularVelocityCompensation(
-        false, false,
+        true, false,
         0.1); // Correct for skew that gets worse as angular velocity increases. Start with a
     // coefficient of 0.1.
     swerveDrive.setModuleEncoderAutoSynchronize(
         false, 1); // Enable if you want to resynchronize your absolute encoders and motor encoders
     // periodically when they are not moving.
+    // swerveDrive.setChassisDiscretization(true, false, Constants.DrivetrainConstants.kSecondOrderKinematicsDt);
     swerveDrive
         .pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder
     // and push the offsets onto it. Throws warning if not possible

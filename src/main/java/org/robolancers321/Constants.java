@@ -38,7 +38,7 @@ public final class Constants {
     public static final double kTrackWidthMeters = Units.inchesToMeters(22.0);
     public static final double kWheelBaseMeters = Units.inchesToMeters(26.0);
 
-    public static final double kMaxSpeedMetersPerSecond = 4.0;
+    public static final double kMaxSpeedMetersPerSecond = 5.0;
     public static final double kMaxOmegaRadiansPerSecond = 1.5 * Math.PI;
 
     public static final double kMaxTeleopSpeedPercent = 1.0;
@@ -129,7 +129,7 @@ public final class Constants {
       kIntake(-6),
       kOuttake(45.0),
       kSpeaker(173),
-      kAmp(107.0);
+      kAmp(120.0);
 
       public final double angle;
 
@@ -150,7 +150,7 @@ public final class Constants {
     public static final double kInSpeed = 1.0;
     public static final double kOutSpeed = -1.0;
 
-    public static final double kAmpShot = -0.6;
+    public static final double kAmpShot = -0.8;
 
     // public static final double kFF = 0.00017;
 

@@ -102,8 +102,8 @@ public class RobotContainer {
     this.configureEvents();
     this.configureLEDs();
     this.configureDefaultCommands();
-    this.configureDriverController_old(); // TODO: test new controls
-    this.configureManipulatorController_old();
+    this.configureDriverController(); // TODO: test new controls
+    this.configureManipulatorController();
     this.configureAuto();
   }
 
@@ -260,13 +260,26 @@ public class RobotContainer {
   .onTrue(this.drivetrain.zeroYawCommand());
 
     new Trigger(() -> this.driverController.getLeftTriggerAxis() > 0.5)
-    .whileTrue(new ScoreSpeakerFixedTeleop().unless(() -> climbing));
+    .whileTrue(new ScoreSpeakerFixedTeleop().unless(() -> climbing))
+    .onFalse(
+      new SequentialCommandGroup(
+              this.retractor.moveToSpeaker(),
+              new ParallelDeadlineGroup(
+                  (new WaitUntilCommand(this.indexer::exitBeamBroken)
+                          .andThen(new WaitUntilCommand(this.indexer::exitBeamNotBroken))
+                          .andThen(new WaitCommand(0.1)))
+                      .withTimeout(1.0),
+                  this.indexer.outtake(),
+                  this.sucker.out(),
+                  Commands.idle(this.pivot, this.flywheel)))
+          .unless(() -> climbing || this.manipulatorController.getLeftTriggerAxis() > 0.5));
     
     new Trigger(this.driverController::getRightBumper)
         .onTrue(new Mate().andThen(new Shift()).unless(() -> climbing));
 
     new Trigger(() -> this.driverController.getRightTriggerAxis() > 0.5)
     .whileTrue(new IntakeNoteManual().unless(() -> climbing));
+
 
     new Trigger(this.driverController::getLeftBumper)
     .whileTrue(new OuttakeNote().unless(() -> climbing));
@@ -306,14 +319,14 @@ public class RobotContainer {
     .and(() -> !climbing)
     .onTrue(new ScoreAmpIntake().unless(() -> climbing));
 
-    new Trigger(() -> this.manipulatorController.getLeftTriggerAxis() > 0.5 && this.manipulatorController.getRightTriggerAxis() > 0.5).onTrue(toggleClimbingMode());
+    new Trigger(() -> this.manipulatorController.getLeftTriggerAxis() > 0.5 && this.manipulatorController.getRightTriggerAxis() > 0.5).whileTrue(this.enableClimbingMode()).whileFalse(disableClimbingMode()); 
 
     new Trigger(() -> Math.abs(this.manipulatorController.getRightY()) > 0.2)
     .whileTrue(
         climber
             .run(
                 () -> {
-                  climber.setRightPower(-this.manipulatorController.getRightY());
+                  climber.setRightPower(this.manipulatorController.getRightY());
                 })
             .finallyDo(
                 () -> {
@@ -326,7 +339,7 @@ public class RobotContainer {
         climber
             .run(
                 () -> {
-                  climber.setLeftPower(-this.manipulatorController.getLeftY());
+                  climber.setLeftPower(this.manipulatorController.getLeftY());
                 })
             .finallyDo(
                 () -> {
@@ -336,7 +349,19 @@ public class RobotContainer {
 
     new Trigger(this.manipulatorController::getRightBumper)
     .and(() -> !climbing)
-    .whileTrue(new ScoreSpeakerFixedTeleop().unless(() -> climbing));
+    .whileTrue(new ScoreSpeakerFixedTeleop().unless(() -> climbing))
+    .onFalse(
+      new SequentialCommandGroup(
+              this.retractor.moveToSpeaker(),
+              new ParallelDeadlineGroup(
+                  (new WaitUntilCommand(this.indexer::exitBeamBroken)
+                          .andThen(new WaitUntilCommand(this.indexer::exitBeamNotBroken))
+                          .andThen(new WaitCommand(0.1)))
+                      .withTimeout(1.0),
+                  this.indexer.outtake(),
+                  this.sucker.out(),
+                  Commands.idle(this.pivot, this.flywheel)))
+          .unless(() -> climbing || this.manipulatorController.getLeftTriggerAxis() > 0.5));
    }
 
 

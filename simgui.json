@@ -32,6 +32,11 @@
     },
     "windows": {
       "/SmartDashboard/Field": {
+        "XModules": {
+          "length": 0.20000000298023224,
+          "weight": 3.0,
+          "width": 0.20000000298023224
+        },
         "bottom": 1476,
         "height": 8.210550308227539,
         "left": 150,
