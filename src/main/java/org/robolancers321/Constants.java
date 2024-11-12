@@ -38,7 +38,7 @@ public final class Constants {
     public static final double kTrackWidthMeters = Units.inchesToMeters(22.0);
     public static final double kWheelBaseMeters = Units.inchesToMeters(26.0);
 
-    public static final double kMaxSpeedMetersPerSecond = 5.0;
+    public static final double kMaxSpeedMetersPerSecond = 1.0;
     public static final double kMaxOmegaRadiansPerSecond = 1.5 * Math.PI;
 
     public static final double kMaxTeleopSpeedPercent = 1.0;
@@ -47,13 +47,16 @@ public final class Constants {
     public static final PathConstraints kAutoConstraints =
         new PathConstraints(4.0, 3.0, 270 * Math.PI / 180, 360 * Math.PI / 180);
 
-    public static final SwerveDriveKinematics kSwerveKinematics =
-        new SwerveDriveKinematics(
+    public static final Translation2d[] moduleTranslations =
+        new Translation2d[]{
             new Translation2d(0.5 * kTrackWidthMeters, 0.5 * kWheelBaseMeters), // front left
             new Translation2d(0.5 * kTrackWidthMeters, -0.5 * kWheelBaseMeters), // front right
             new Translation2d(-0.5 * kTrackWidthMeters, -0.5 * kWheelBaseMeters), // back right
-            new Translation2d(-0.5 * kTrackWidthMeters, 0.5 * kWheelBaseMeters) // back left
-            );
+            new Translation2d(-0.5 * kTrackWidthMeters, 0.5 * kWheelBaseMeters) //back left
+        }; 
+    
+
+    public static final SwerveDriveKinematics kSwerveKinematics = new SwerveDriveKinematics(moduleTranslations);
 
     public static double kSecondOrderKinematicsDt = 0.2;
 
