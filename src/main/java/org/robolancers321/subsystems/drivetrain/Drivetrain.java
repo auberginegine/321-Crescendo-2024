@@ -13,7 +13,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -588,7 +587,10 @@ public class Drivetrain extends SubsystemBase {
 
           ChassisSpeeds desiredSpeeds =
               ChassisSpeeds.fromFieldRelativeSpeeds(
-                  strafeVec.getX(), strafeVec.getY(), omega, new Rotation2d(swerveDrive.getYaw().getRadians()));
+                  strafeVec.getX(),
+                  strafeVec.getY(),
+                  omega,
+                  new Rotation2d(swerveDrive.getYaw().getRadians()));
 
           // generate next feasible setpoint
           currentSetpoint =
@@ -605,21 +607,21 @@ public class Drivetrain extends SubsystemBase {
                     currentSetpoint.moduleStates()[i], modules[i].getState().angle);
 
             optimizedSetpointTorques[i] =
-              new SwerveModuleState(0.0, optimizedSetpointStates[i].angle);
+                new SwerveModuleState(0.0, optimizedSetpointStates[i].angle);
           }
 
-          //drive w/ chassis speeds
-          ChassisSpeeds optimizedSpeeds = DrivetrainConstants.kSwerveKinematics.toChassisSpeeds(optimizedSetpointStates);
+          // drive w/ chassis speeds
+          ChassisSpeeds optimizedSpeeds =
+              DrivetrainConstants.kSwerveKinematics.toChassisSpeeds(optimizedSetpointStates);
           swerveDrive.drive(optimizedSpeeds);
-        
-          //drive by setting modules directly
+
+          // drive by setting modules directly
           // for(int i = 0; i < modules.length; i++){
           //   modules[i].setDesiredState(optimizedSetpointStates[i], false, true);
           // }
 
-
-
-          moduleDesiredStatePublisher.set(DrivetrainConstants.kSwerveKinematics.toSwerveModuleStates(desiredSpeeds));
+          moduleDesiredStatePublisher.set(
+              DrivetrainConstants.kSwerveKinematics.toSwerveModuleStates(desiredSpeeds));
           moduleStatePublisher.set(optimizedSetpointStates);
 
           // this.swerveDrive.drive(
