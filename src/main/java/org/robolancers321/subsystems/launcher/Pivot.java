@@ -131,7 +131,8 @@ public class Pivot extends SubsystemBase {
 
     // SmartDashboard.putNumber("pivot ff output", feedforwardOutput);
 
-    // double feedbackOutput = feedbackController.calculate(this.getPositionDeg(), setpoint.position);
+    // double feedbackOutput = feedbackController.calculate(this.getPositionDeg(),
+    // setpoint.position);
 
     // SmartDashboard.putNumber("pivot fb output", feedbackOutput);
 

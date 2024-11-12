@@ -13,8 +13,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -41,7 +44,6 @@ import org.robolancers321.util.MyAlliance;
 import org.robolancers321.util.swerve.ModuleLimits;
 import org.robolancers321.util.swerve.SwerveSetpoint;
 import org.robolancers321.util.swerve.SwerveSetpointGenerator;
-
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
 import swervelib.SwerveModule;
@@ -82,6 +84,9 @@ public class Drivetrain extends SubsystemBase {
   private SwerveSetpoint currentSetpoint;
   private ModuleLimits moduleLimits;
 
+  private final StructArrayPublisher<SwerveModuleState> moduleStatePublisher;
+  private final StructArrayPublisher<SwerveModuleState> moduleDesiredStatePublisher;
+
   private Drivetrain() throws IOException {
 
     File swerveJsonDirectory = new File(Filesystem.getDeployDirectory(), "swerve");
@@ -89,8 +94,7 @@ public class Drivetrain extends SubsystemBase {
         new SwerveParser(swerveJsonDirectory)
             .createSwerveDrive(Constants.DrivetrainConstants.kMaxSpeedMetersPerSecond);
 
-
-            SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH; 
+    SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
 
     this.mainCamera = new PhotonCamera(DrivetrainConstants.kMainCameraName);
     this.noteCamera = new PhotonCamera(DrivetrainConstants.kNoteCameraName);
@@ -110,12 +114,21 @@ public class Drivetrain extends SubsystemBase {
     this.configureSwerve();
     this.configureSwerveSetpointGenerator();
 
-    // this.swerveDrive.setHeadingCorrection(true);
+    this.moduleStatePublisher =
+        NetworkTableInstance.getDefault()
+            .getStructArrayTopic("/SwerveCurrentState", SwerveModuleState.struct)
+            .publish();
+    this.moduleDesiredStatePublisher =
+        NetworkTableInstance.getDefault()
+            .getStructArrayTopic("/SwerveDesiredState", SwerveModuleState.struct)
+            .publish();
 
+    // this.swerveDrive.setHeadingCorrection(true);
   }
 
   private void configureSwerve() {
-    swerveDrive.swerveController.setMaximumAngularVelocity(Constants.DrivetrainConstants.kMaxOmegaRadiansPerSecond);
+    swerveDrive.swerveController.setMaximumAngularVelocity(
+        Constants.DrivetrainConstants.kMaxOmegaRadiansPerSecond);
     swerveDrive.setHeadingCorrection(
         false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(
@@ -128,7 +141,8 @@ public class Drivetrain extends SubsystemBase {
     swerveDrive.setModuleEncoderAutoSynchronize(
         false, 1); // Enable if you want to resynchronize your absolute encoders and motor encoders
     // periodically when they are not moving.
-    // swerveDrive.setChassisDiscretization(true, false, Constants.DrivetrainConstants.kSecondOrderKinematicsDt);
+    // swerveDrive.setChassisDiscretization(true, false,
+    // Constants.DrivetrainConstants.kSecondOrderKinematicsDt);
     swerveDrive
         .pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder
     // and push the offsets onto it. Throws warning if not possible
@@ -136,23 +150,25 @@ public class Drivetrain extends SubsystemBase {
     this.modules = swerveDrive.getModules();
   }
 
-  public void configureSwerveSetpointGenerator(){
+  public void configureSwerveSetpointGenerator() {
     this.currentSetpoint =
-      new SwerveSetpoint(
-          new ChassisSpeeds(),
-          new SwerveModuleState[] {
-            new SwerveModuleState(),
-            new SwerveModuleState(),
-            new SwerveModuleState(),
-            new SwerveModuleState()
-          });
+        new SwerveSetpoint(
+            new ChassisSpeeds(),
+            new SwerveModuleState[] {
+              new SwerveModuleState(),
+              new SwerveModuleState(),
+              new SwerveModuleState(),
+              new SwerveModuleState()
+            });
 
-    this.swerveSetpointGenerator = new SwerveSetpointGenerator(DrivetrainConstants.kSwerveKinematics, DrivetrainConstants.moduleTranslations);
-    this.moduleLimits = new ModuleLimits(
-      DrivetrainConstants.kMaxSpeedMetersPerSecond, 
-      4.4, 
-      DrivetrainConstants.kMaxOmegaRadiansPerSecond
-    );
+    this.swerveSetpointGenerator =
+        new SwerveSetpointGenerator(
+            DrivetrainConstants.kSwerveKinematics, DrivetrainConstants.moduleTranslations);
+    this.moduleLimits =
+        new ModuleLimits(
+            DrivetrainConstants.kMaxSpeedMetersPerSecond,
+            Double.MAX_VALUE,
+            DrivetrainConstants.kMaxOmegaRadiansPerSecond);
   }
 
   public void zeroYaw() {
@@ -430,7 +446,10 @@ public class Drivetrain extends SubsystemBase {
     // set desired module states to target states
     // SwerveModuleState[] states = new SwerveModuleState[4];
     for (int i = 0; i < modules.length; i++) {
-      modules[i].setDesiredState(new SwerveModuleState(targetVelocity, Rotation2d.fromDegrees(targetHeading)), false, true);
+      modules[i].setDesiredState(
+          new SwerveModuleState(targetVelocity, Rotation2d.fromDegrees(targetHeading)),
+          false,
+          true);
     }
 
     // log heading and velocity error
@@ -444,7 +463,8 @@ public class Drivetrain extends SubsystemBase {
        * 3 - back right
        */
       SmartDashboard.putNumber(
-          "module " + i + " driving error: ", targetVelocity - currentState[i].speedMetersPerSecond);
+          "module " + i + " driving error: ",
+          targetVelocity - currentState[i].speedMetersPerSecond);
       SmartDashboard.putNumber(
           "module " + i + " heading error: ", targetHeading - currentState[i].angle.getDegrees());
     }
@@ -555,41 +575,53 @@ public class Drivetrain extends SubsystemBase {
 
           // driveFieldRelative(speeds);
 
-
-
           Translation2d strafeVec =
               SwerveMath.scaleTranslation(
                   new Translation2d(
-                      -MathUtil.applyDeadband(controller.getLeftY(), 0.03) * swerveDrive.getMaximumVelocity(),
-                      -MathUtil.applyDeadband(controller.getLeftX(), 0.03) * swerveDrive.getMaximumVelocity()),
+                      -MathUtil.applyDeadband(controller.getLeftY(), 0.03)
+                          * swerveDrive.getMaximumVelocity(),
+                      -MathUtil.applyDeadband(controller.getLeftX(), 0.03)
+                          * swerveDrive.getMaximumVelocity()),
                   0.8);
 
           if (MyAlliance.isRed()) strafeVec = strafeVec.rotateBy(Rotation2d.fromDegrees(180));
 
-          ChassisSpeeds desiredSpeeds = new ChassisSpeeds(strafeVec.getX(), strafeVec.getY(), omega);
+          ChassisSpeeds desiredSpeeds =
+              ChassisSpeeds.fromFieldRelativeSpeeds(
+                  strafeVec.getX(), strafeVec.getY(), omega, new Rotation2d(swerveDrive.getYaw().getRadians()));
 
-          //generate next feasible setpoint
+          // generate next feasible setpoint
           currentSetpoint =
-            swerveSetpointGenerator.generateSetpoint(
-                moduleLimits, currentSetpoint, desiredSpeeds, 0.02);
+              swerveSetpointGenerator.generateSetpoint(
+                  moduleLimits, currentSetpoint, desiredSpeeds, 0.02);
 
-          //optimize setpoints
+          // optimize setpoints
           SwerveModuleState[] optimizedSetpointStates = new SwerveModuleState[4];
-          // SwerveModuleState[] optimizedSetpointTorques = new SwerveModuleState[4];
+          SwerveModuleState[] optimizedSetpointTorques = new SwerveModuleState[4];
 
-          for(int i = 0; i < modules.length; i++){
+          for (int i = 0; i < modules.length; i++) {
             optimizedSetpointStates[i] =
-              SwerveModuleState.optimize(currentSetpoint.moduleStates()[i], modules[i].getState().angle);
+                SwerveModuleState.optimize(
+                    currentSetpoint.moduleStates()[i], modules[i].getState().angle);
 
-            // optimizedSetpointTorques[i] =
-            //   new SwerveModuleState(0.0, optimizedSetpointStates[i].angle);
+            optimizedSetpointTorques[i] =
+              new SwerveModuleState(0.0, optimizedSetpointStates[i].angle);
           }
 
-          for (int i = 0; i < modules.length; i++){
-            modules[i].setDesiredState(optimizedSetpointStates[i], false, true);
-          }
+          //drive w/ chassis speeds
+          ChassisSpeeds optimizedSpeeds = DrivetrainConstants.kSwerveKinematics.toChassisSpeeds(optimizedSetpointStates);
+          swerveDrive.drive(optimizedSpeeds);
+        
+          //drive by setting modules directly
+          // for(int i = 0; i < modules.length; i++){
+          //   modules[i].setDesiredState(optimizedSetpointStates[i], false, true);
+          // }
 
-          
+
+
+          moduleDesiredStatePublisher.set(DrivetrainConstants.kSwerveKinematics.toSwerveModuleStates(desiredSpeeds));
+          moduleStatePublisher.set(optimizedSetpointStates);
+
           // this.swerveDrive.drive(
           //     strafeVec,
           //     -Math.pow(controller.getRightX(), 3) * swerveDrive.getMaximumAngularVelocity(),
@@ -719,19 +751,19 @@ public class Drivetrain extends SubsystemBase {
 
   public Command zeroToPose(Pose2d pose) {
     return runOnce(
-            () -> {
-              Pose2d flippedPose;
-              if (MyAlliance.isRed()) {
-                flippedPose = GeometryUtil.flipFieldPose(pose);
-              } else {
-                flippedPose = pose;
-              }
-              resetPose(flippedPose);
-            }); 
+        () -> {
+          Pose2d flippedPose;
+          if (MyAlliance.isRed()) {
+            flippedPose = GeometryUtil.flipFieldPose(pose);
+          } else {
+            flippedPose = pose;
+          }
+          resetPose(flippedPose);
+        });
   }
 
   public Command zeroToPath(PathPlannerPath path) {
-    return zeroToPose(path.getPreviewStartingHolonomicPose()); 
+    return zeroToPose(path.getPreviewStartingHolonomicPose());
   }
 
   public Command sysIdDriveMotorCommand() {

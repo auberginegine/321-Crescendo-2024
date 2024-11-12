@@ -14,7 +14,7 @@ public class BotDisrupt extends SequentialCommandGroup {
     this.drivetrain = Drivetrain.getInstance();
 
     this.addCommands(
-      Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromPathFile("BotDisrupt")),
+        Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromPathFile("BotDisrupt")),
         new ScoreSpeakerFixedAuto(),
         AutoBuilder.followPath(PathPlannerPath.fromPathFile("BotDisrupt")));
   }

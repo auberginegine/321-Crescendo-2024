@@ -33,7 +33,8 @@ public class BotTaxi extends SequentialCommandGroup {
     List<PathPlannerPath> pathGroup = PathPlannerAuto.getPathGroupFromAutoFile("1BotTaxi");
 
     this.addCommands(
-      Drivetrain.getInstance().zeroToPath(pathGroup.get(0)),  
-    new ScoreSpeakerFixedAuto(), AutoBuilder.followPath(pathGroup.get(0)));
+        Drivetrain.getInstance().zeroToPath(pathGroup.get(0)),
+        new ScoreSpeakerFixedAuto(),
+        AutoBuilder.followPath(pathGroup.get(0)));
   }
 }

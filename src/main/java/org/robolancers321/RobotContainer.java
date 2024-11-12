@@ -6,7 +6,6 @@ import static org.robolancers321.util.MathUtils.epsilonEquals;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.path.PathPlannerPath;
-
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.simulation.AddressableLEDSim;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
@@ -148,7 +147,8 @@ public class RobotContainer {
         5,
         () ->
             (this.flywheel.isRevved()
-              && this.flywheel.getGoalRPM() >= FlywheelConstants.FlywheelSetpoint.kAcceptHandoff.rpm),
+                && this.flywheel.getGoalRPM()
+                    >= FlywheelConstants.FlywheelSetpoint.kAcceptHandoff.rpm),
         LED.solid(Section.FULL, new Color(0, 255, 0)));
 
     LED.registerSignal(
@@ -160,7 +160,7 @@ public class RobotContainer {
   private void configureDefaultCommands() {
     this.drivetrain.setDefaultCommand( // this.drivetrain.tuneModules());
         this.drivetrain.teleopDrive(driverController, true));
-        // this.drivetrain.tuneModulesCommand()); 
+    // this.drivetrain.tuneModulesCommand());
 
     this.sucker.setDefaultCommand(this.sucker.off());
     this.indexer.setDefaultCommand(this.indexer.off());
@@ -226,7 +226,6 @@ public class RobotContainer {
     // new Trigger(this.driverController::getRightBumper)
     //     .whileFalse(new InstantCommand(() -> this.drivetrain.slowMode = false));
 
-
     new Trigger(this.driverController::getLeftBumper).whileTrue(this.sucker.in());
     new Trigger(this.driverController::getLeftBumper).whileFalse(this.sucker.off());
 
@@ -240,8 +239,8 @@ public class RobotContainer {
     new Trigger(() -> this.driverController.getLeftTriggerAxis() > 0.8)
         .whileTrue(new OuttakeNote().unless(() -> climbing));
 
-    new Trigger(this.driverController::getAButton).whileTrue(drivetrain.sysIdAngleMotorCommand()); 
-        // .whileTrue(this.drivetrain.alignToAmp().unless(() -> climbing));
+    new Trigger(this.driverController::getAButton).whileTrue(drivetrain.sysIdAngleMotorCommand());
+    // .whileTrue(this.drivetrain.alignToAmp().unless(() -> climbing));
 
     new Trigger(this.driverController::getBButton)
         .whileTrue(new AutoPickupNote().unless(() -> climbing));
@@ -254,33 +253,32 @@ public class RobotContainer {
 
   private void configureDriverController() {
     new Trigger(
-      () -> this.driverController.getLeftBumper() && this.driverController.getRightBumper())
-  .onTrue(this.drivetrain.zeroYawCommand());
+            () -> this.driverController.getLeftBumper() && this.driverController.getRightBumper())
+        .onTrue(this.drivetrain.zeroYawCommand());
 
     new Trigger(() -> this.driverController.getLeftTriggerAxis() > 0.5)
-    .whileTrue(new ScoreSpeakerFixedTeleop().unless(() -> climbing))
-    .onFalse(
-      new SequentialCommandGroup(
-              this.retractor.moveToSpeaker(),
-              new ParallelDeadlineGroup(
-                  (new WaitUntilCommand(this.indexer::exitBeamBroken)
-                          .andThen(new WaitUntilCommand(this.indexer::exitBeamNotBroken))
-                          .andThen(new WaitCommand(0.1)))
-                      .withTimeout(1.0),
-                  this.indexer.outtake(),
-                  this.sucker.out(),
-                  Commands.idle(this.pivot, this.flywheel)))
-          .unless(() -> climbing || this.manipulatorController.getLeftTriggerAxis() > 0.5));
-    
+        .whileTrue(new ScoreSpeakerFixedTeleop().unless(() -> climbing))
+        .onFalse(
+            new SequentialCommandGroup(
+                    this.retractor.moveToSpeaker(),
+                    new ParallelDeadlineGroup(
+                        (new WaitUntilCommand(this.indexer::exitBeamBroken)
+                                .andThen(new WaitUntilCommand(this.indexer::exitBeamNotBroken))
+                                .andThen(new WaitCommand(0.1)))
+                            .withTimeout(1.0),
+                        this.indexer.outtake(),
+                        this.sucker.out(),
+                        Commands.idle(this.pivot, this.flywheel)))
+                .unless(() -> climbing || this.manipulatorController.getLeftTriggerAxis() > 0.5));
+
     new Trigger(this.driverController::getRightBumper)
         .onTrue(new Mate().andThen(new Shift()).unless(() -> climbing));
 
     new Trigger(() -> this.driverController.getRightTriggerAxis() > 0.5)
-    .whileTrue(new IntakeNoteManual().unless(() -> climbing));
-
+        .whileTrue(new IntakeNoteManual().unless(() -> climbing));
 
     new Trigger(this.driverController::getLeftBumper)
-    .whileTrue(new OuttakeNote().unless(() -> climbing));
+        .whileTrue(new OuttakeNote().unless(() -> climbing));
 
     new Trigger(this.driverController::getXButton).onTrue(toggleClimbingMode());
   }
@@ -312,57 +310,60 @@ public class RobotContainer {
    * Left Trigger: left climber down
    */
 
-   private void configureManipulatorController() {
+  private void configureManipulatorController() {
     new Trigger(() -> this.manipulatorController.getLeftBumper())
-    .and(() -> !climbing)
-    .onTrue(new ScoreAmpIntake().unless(() -> climbing));
+        .and(() -> !climbing)
+        .onTrue(new ScoreAmpIntake().unless(() -> climbing));
 
-    new Trigger(() -> this.manipulatorController.getLeftTriggerAxis() > 0.5 && this.manipulatorController.getRightTriggerAxis() > 0.5).whileTrue(this.enableClimbingMode()).whileFalse(disableClimbingMode()); 
+    new Trigger(
+            () ->
+                this.manipulatorController.getLeftTriggerAxis() > 0.5
+                    && this.manipulatorController.getRightTriggerAxis() > 0.5)
+        .whileTrue(this.enableClimbingMode())
+        .whileFalse(disableClimbingMode());
 
     new Trigger(() -> Math.abs(this.manipulatorController.getRightY()) > 0.2)
-    .whileTrue(
-        climber
-            .run(
-                () -> {
-                  climber.setRightPower(this.manipulatorController.getRightY());
-                })
-            .finallyDo(
-                () -> {
-                  climber.setRightPower(0);
-                })
-            .onlyIf(() -> climbing));
+        .whileTrue(
+            climber
+                .run(
+                    () -> {
+                      climber.setRightPower(this.manipulatorController.getRightY());
+                    })
+                .finallyDo(
+                    () -> {
+                      climber.setRightPower(0);
+                    })
+                .onlyIf(() -> climbing));
 
     new Trigger(() -> Math.abs(this.manipulatorController.getLeftY()) > 0.2)
-    .whileTrue(
-        climber
-            .run(
-                () -> {
-                  climber.setLeftPower(this.manipulatorController.getLeftY());
-                })
-            .finallyDo(
-                () -> {
-                  climber.setLeftPower(0);
-                })
-            .onlyIf(() -> climbing));
+        .whileTrue(
+            climber
+                .run(
+                    () -> {
+                      climber.setLeftPower(this.manipulatorController.getLeftY());
+                    })
+                .finallyDo(
+                    () -> {
+                      climber.setLeftPower(0);
+                    })
+                .onlyIf(() -> climbing));
 
     new Trigger(this.manipulatorController::getRightBumper)
-    .and(() -> !climbing)
-    .whileTrue(new ScoreSpeakerFixedTeleop().unless(() -> climbing))
-    .onFalse(
-      new SequentialCommandGroup(
-              this.retractor.moveToSpeaker(),
-              new ParallelDeadlineGroup(
-                  (new WaitUntilCommand(this.indexer::exitBeamBroken)
-                          .andThen(new WaitUntilCommand(this.indexer::exitBeamNotBroken))
-                          .andThen(new WaitCommand(0.1)))
-                      .withTimeout(1.0),
-                  this.indexer.outtake(),
-                  this.sucker.out(),
-                  Commands.idle(this.pivot, this.flywheel)))
-          .unless(() -> climbing || this.manipulatorController.getLeftTriggerAxis() > 0.5));
-   }
-
-
+        .and(() -> !climbing)
+        .whileTrue(new ScoreSpeakerFixedTeleop().unless(() -> climbing))
+        .onFalse(
+            new SequentialCommandGroup(
+                    this.retractor.moveToSpeaker(),
+                    new ParallelDeadlineGroup(
+                        (new WaitUntilCommand(this.indexer::exitBeamBroken)
+                                .andThen(new WaitUntilCommand(this.indexer::exitBeamNotBroken))
+                                .andThen(new WaitCommand(0.1)))
+                            .withTimeout(1.0),
+                        this.indexer.outtake(),
+                        this.sucker.out(),
+                        Commands.idle(this.pivot, this.flywheel)))
+                .unless(() -> climbing || this.manipulatorController.getLeftTriggerAxis() > 0.5));
+  }
 
   private void configureManipulatorController_old() {
     new Trigger(this.manipulatorController::getBButton)
@@ -427,8 +428,6 @@ public class RobotContainer {
     new Trigger(() -> this.manipulatorController.getRightTriggerAxis() > 0.5)
         .and(() -> !climbing)
         .onTrue(new ScoreAmpIntake().unless(() -> climbing));
-
-
 
     // new Trigger(() -> this.manipulatorController.getRightTriggerAxis() > 0.5)
     //     .and(() -> !climbing)
@@ -519,7 +518,11 @@ public class RobotContainer {
         // () -> this.drivetrain.zeroYaw(this.drivetrain.getPose().getRotation().getDegrees()))
         );
     this.autoChooser.setDefaultOption("Score And Sit", new ScoreAndSit());
-    this.autoChooser.addOption("Tune", drivetrain.zeroToPath(PathPlannerPath.fromPathFile("Bruh")).andThen(AutoBuilder.followPath(PathPlannerPath.fromPathFile("Bruh"))));
+    this.autoChooser.addOption(
+        "Tune",
+        drivetrain
+            .zeroToPath(PathPlannerPath.fromPathFile("Bruh"))
+            .andThen(AutoBuilder.followPath(PathPlannerPath.fromPathFile("Bruh"))));
 
     // this.autoChooser.addOption(
     //     "TESTING DONT USE",

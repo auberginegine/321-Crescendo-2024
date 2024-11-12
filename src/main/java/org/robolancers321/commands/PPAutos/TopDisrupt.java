@@ -14,7 +14,7 @@ public class TopDisrupt extends SequentialCommandGroup {
     this.drivetrain = Drivetrain.getInstance();
 
     this.addCommands(
-      Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromPathFile("TopDisrupt")),
+        Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromPathFile("TopDisrupt")),
         new ScoreSpeakerFixedAuto(),
         AutoBuilder.followPath(PathPlannerPath.fromPathFile("TopDisrupt")));
   }

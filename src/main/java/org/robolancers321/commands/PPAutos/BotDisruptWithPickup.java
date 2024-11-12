@@ -15,7 +15,7 @@ public class BotDisruptWithPickup extends SequentialCommandGroup {
     this.drivetrain = Drivetrain.getInstance();
 
     this.addCommands(
-      Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromPathFile("BotDisruptWithPickup")),
+        Drivetrain.getInstance().zeroToPath(PathPlannerPath.fromPathFile("BotDisruptWithPickup")),
         new ScoreSpeakerFixedAuto(),
         AutoBuilder.followPath(PathPlannerPath.fromPathFile("BotDisruptWithPickup")),
         new AutoPickupNote());

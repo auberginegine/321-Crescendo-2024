@@ -1,10 +1,4 @@
-// Copyright (c) 2024 FRC 6328
-// http://github.com/Mechanical-Advantage
-//
-// Use of this source code is governed by an MIT-style
-// license that can be found in the LICENSE file at
-// the root directory of this project.
-
+/* (C) Robolancers 2024 */
 package org.robolancers321.util.swerve;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -17,7 +11,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-
 /**
  * "Inspired" by FRC team 254. See the license file in the root directory of this project.
  *
@@ -27,12 +20,12 @@ import java.util.Optional;
  * robot will converge to the desired setpoint quickly while avoiding any intermediate state that is
  * kinematically infeasible (and can result in wheel slip or robot heading drift as a result).
  */
-
 public class SwerveSetpointGenerator {
   private final SwerveDriveKinematics kinematics;
   private final Translation2d[] moduleLocations;
 
-  public SwerveSetpointGenerator(SwerveDriveKinematics kinematics, Translation2d[] moduleLocations){
+  public SwerveSetpointGenerator(
+      SwerveDriveKinematics kinematics, Translation2d[] moduleLocations) {
     this.kinematics = kinematics;
     this.moduleLocations = moduleLocations;
   }
@@ -252,10 +245,12 @@ public class SwerveSetpointGenerator {
       }
     }
     if (all_modules_should_flip
-        && !EqualsUtil.GeomExtensions.epsilonEquals(GeomUtil.toTwist2d(prevSetpoint.chassisSpeeds()), new Twist2d())
-        //!prevSetpoint.chassisSpeeds().toTwist2d().epsilonEquals(new Twist2d())
-        && !EqualsUtil.GeomExtensions.epsilonEquals(GeomUtil.toTwist2d(desiredState), new Twist2d())){
-        // !desiredState.toTwist2d().epsilonEquals(new Twist2d())) {
+        && !EqualsUtil.GeomExtensions.epsilonEquals(
+            GeomUtil.toTwist2d(prevSetpoint.chassisSpeeds()), new Twist2d())
+        // !prevSetpoint.chassisSpeeds().toTwist2d().epsilonEquals(new Twist2d())
+        && !EqualsUtil.GeomExtensions.epsilonEquals(
+            GeomUtil.toTwist2d(desiredState), new Twist2d())) {
+      // !desiredState.toTwist2d().epsilonEquals(new Twist2d())) {
 
       // It will (likely) be faster to stop the robot, rotate the modules in place to the complement
       // of the desired

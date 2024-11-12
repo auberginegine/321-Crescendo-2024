@@ -27,8 +27,11 @@ public final class Constants {
 
     public static final Transform3d kRobotToCameraTransform =
         new Transform3d(
-          // TODO: see if this is correct
-            -0.35, 0, 0.516, new Rotation3d(Math.PI, -31.5 * Math.PI / 180.0, Math.PI)); // 0.34, 0 ,-0.48
+            // TODO: see if this is correct
+            -0.35,
+            0,
+            0.516,
+            new Rotation3d(Math.PI, -31.5 * Math.PI / 180.0, Math.PI)); // 0.34, 0 ,-0.48
     // 0.33, 0.513
     public static final double kNoteCameraMountHeight =
         Units.inchesToMeters(11.0); // rough estimate of camera height while mounted on crate
@@ -38,7 +41,7 @@ public final class Constants {
     public static final double kTrackWidthMeters = Units.inchesToMeters(22.0);
     public static final double kWheelBaseMeters = Units.inchesToMeters(26.0);
 
-    public static final double kMaxSpeedMetersPerSecond = 1.0;
+    public static final double kMaxSpeedMetersPerSecond = 5.0;
     public static final double kMaxOmegaRadiansPerSecond = 1.5 * Math.PI;
 
     public static final double kMaxTeleopSpeedPercent = 1.0;
@@ -48,15 +51,15 @@ public final class Constants {
         new PathConstraints(4.0, 3.0, 270 * Math.PI / 180, 360 * Math.PI / 180);
 
     public static final Translation2d[] moduleTranslations =
-        new Translation2d[]{
-            new Translation2d(0.5 * kTrackWidthMeters, 0.5 * kWheelBaseMeters), // front left
-            new Translation2d(0.5 * kTrackWidthMeters, -0.5 * kWheelBaseMeters), // front right
-            new Translation2d(-0.5 * kTrackWidthMeters, -0.5 * kWheelBaseMeters), // back right
-            new Translation2d(-0.5 * kTrackWidthMeters, 0.5 * kWheelBaseMeters) //back left
-        }; 
-    
+        new Translation2d[] {
+          new Translation2d(0.5 * kTrackWidthMeters, 0.5 * kWheelBaseMeters), // front left
+          new Translation2d(0.5 * kTrackWidthMeters, -0.5 * kWheelBaseMeters), // front right
+          new Translation2d(-0.5 * kTrackWidthMeters, -0.5 * kWheelBaseMeters), // back right
+          new Translation2d(-0.5 * kTrackWidthMeters, 0.5 * kWheelBaseMeters) // back left
+        };
 
-    public static final SwerveDriveKinematics kSwerveKinematics = new SwerveDriveKinematics(moduleTranslations);
+    public static final SwerveDriveKinematics kSwerveKinematics =
+        new SwerveDriveKinematics(moduleTranslations);
 
     public static double kSecondOrderKinematicsDt = 0.2;
 
