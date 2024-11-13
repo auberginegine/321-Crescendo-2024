@@ -78,6 +78,7 @@ public final class Constants {
     public static final double kHeadingD = 0.01; // 0.01?
 
     public static final double kHeadingTolerance = 1.5;
+    public static final double kDeadband = 0.03;
   }
 
   public static final class SwerveModuleConstants {

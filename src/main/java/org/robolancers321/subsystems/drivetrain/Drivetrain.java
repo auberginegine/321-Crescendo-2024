@@ -1,35 +1,12 @@
 /* (C) Robolancers 2024 */
 package org.robolancers321.subsystems.drivetrain;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.util.GeometryUtil;
-import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
-import com.pathplanner.lib.util.PIDConstants;
-import com.pathplanner.lib.util.PathPlannerLogging;
-import com.pathplanner.lib.util.ReplanningConfig;
-import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.wpilibj.Filesystem;
-import edu.wpi.first.wpilibj.XboxController;
-import edu.wpi.first.wpilibj.smartdashboard.Field2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import java.io.File;
 import java.io.IOException;
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
 import java.util.function.DoubleSupplier;
+
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -43,6 +20,34 @@ import org.robolancers321.util.MyAlliance;
 import org.robolancers321.util.swerve.ModuleLimits;
 import org.robolancers321.util.swerve.SwerveSetpoint;
 import org.robolancers321.util.swerve.SwerveSetpointGenerator;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.util.GeometryUtil;
+import com.pathplanner.lib.util.HolonomicPathFollowerConfig;
+import com.pathplanner.lib.util.PIDConstants;
+import com.pathplanner.lib.util.PathPlannerLogging;
+import com.pathplanner.lib.util.ReplanningConfig;
+
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
+import edu.wpi.first.wpilibj.Filesystem;
+import edu.wpi.first.wpilibj.XboxController;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Config;
 import swervelib.SwerveDrive;
 import swervelib.SwerveDriveTest;
 import swervelib.SwerveModule;
@@ -85,6 +90,7 @@ public class Drivetrain extends SubsystemBase {
 
   private final StructArrayPublisher<SwerveModuleState> moduleStatePublisher;
   private final StructArrayPublisher<SwerveModuleState> moduleDesiredStatePublisher;
+  private final SwerveDriveTelemetry telemetry = new SwerveDriveTelemetry();
 
   private Drivetrain() throws IOException {
 
@@ -540,7 +546,7 @@ public class Drivetrain extends SubsystemBase {
           double omega =
               DrivetrainConstants.kMaxTeleopRotationPercent
                   * DrivetrainConstants.kMaxOmegaRadiansPerSecond
-                  * MathUtil.applyDeadband(MathUtils.squareKeepSign(controller.getRightX()), 0.03)
+                  * MathUtils.squareKeepSign(MathUtil.applyDeadband(controller.getRightX(), DrivetrainConstants.kDeadband))
                   * multiplier;
 
           // TODO: uncomment for aim assist
@@ -574,16 +580,17 @@ public class Drivetrain extends SubsystemBase {
 
           // driveFieldRelative(speeds);
 
+          Translation2d linearVelocity = calcLinearSpeed(controller.getLeftX(), controller.getLeftY());
+          
+          //apply deadband, scalar multiplication, and scale w/ max speed to linearVelocity & rotation vec
           Translation2d strafeVec =
               SwerveMath.scaleTranslation(
                   new Translation2d(
-                      -MathUtil.applyDeadband(controller.getLeftY(), 0.03)
+                      -MathUtil.applyDeadband(linearVelocity.getX(), DrivetrainConstants.kDeadband)
                           * swerveDrive.getMaximumVelocity(),
-                      -MathUtil.applyDeadband(controller.getLeftX(), 0.03)
+                      -MathUtil.applyDeadband(linearVelocity.getY(), DrivetrainConstants.kDeadband)
                           * swerveDrive.getMaximumVelocity()),
-                  0.8);
-
-          if (MyAlliance.isRed()) strafeVec = strafeVec.rotateBy(Rotation2d.fromDegrees(180));
+                  multiplier);
 
           ChassisSpeeds desiredSpeeds =
               ChassisSpeeds.fromFieldRelativeSpeeds(
@@ -592,45 +599,50 @@ public class Drivetrain extends SubsystemBase {
                   omega,
                   new Rotation2d(swerveDrive.getYaw().getRadians()));
 
-          // generate next feasible setpoint
+          // generate next kinematically feasible setpoint
           currentSetpoint =
               swerveSetpointGenerator.generateSetpoint(
                   moduleLimits, currentSetpoint, desiredSpeeds, 0.02);
 
-          // optimize setpoints
-          SwerveModuleState[] optimizedSetpointStates = new SwerveModuleState[4];
-          SwerveModuleState[] optimizedSetpointTorques = new SwerveModuleState[4];
+          // optimize setpoints (redundant w/ setDesiredStates)
+          // SwerveModuleState[] optimizedSetpointStates = new SwerveModuleState[4];
+          // SwerveModuleState[] optimizedSetpointTorques = new SwerveModuleState[4];
 
-          for (int i = 0; i < modules.length; i++) {
-            optimizedSetpointStates[i] =
-                SwerveModuleState.optimize(
-                    currentSetpoint.moduleStates()[i], modules[i].getState().angle);
+          // for (int i = 0; i < modules.length; i++) {
+          //   optimizedSetpointStates[i] =
+          //       SwerveModuleState.optimize(
+          //           currentSetpoint.moduleStates()[i], Rotation2d.fromDegrees(modules[i].getAbsolutePosition()));
 
-            optimizedSetpointTorques[i] =
-                new SwerveModuleState(0.0, optimizedSetpointStates[i].angle);
-          }
-
-          // drive w/ chassis speeds
-          ChassisSpeeds optimizedSpeeds =
-              DrivetrainConstants.kSwerveKinematics.toChassisSpeeds(optimizedSetpointStates);
-          swerveDrive.drive(optimizedSpeeds);
-
-          // drive by setting modules directly
-          // for(int i = 0; i < modules.length; i++){
-          //   modules[i].setDesiredState(optimizedSetpointStates[i], false, true);
+          //   optimizedSetpointTorques[i] =
+          //       new SwerveModuleState(0.0, optimizedSetpointStates[i].angle);
           // }
 
-          moduleDesiredStatePublisher.set(
-              DrivetrainConstants.kSwerveKinematics.toSwerveModuleStates(desiredSpeeds));
-          moduleStatePublisher.set(optimizedSetpointStates);
+          for(int i = 0; i < modules.length; i++){
+            modules[i].setDesiredState(currentSetpoint.moduleStates()[i], false, false);
+          }
 
-          // this.swerveDrive.drive(
-          //     strafeVec,
-          //     -Math.pow(controller.getRightX(), 3) * swerveDrive.getMaximumAngularVelocity(),
-          //     true,
-          //     false);
+          moduleDesiredStatePublisher.set(
+              swerveDrive.kinematics.toSwerveModuleStates(desiredSpeeds));
+
+          moduleStatePublisher.set(currentSetpoint.moduleStates());
         })
         .finallyDo(this::stop);
+  }
+
+  public Translation2d calcLinearSpeed(double x, double y){
+    double linearMagnitude = MathUtil.applyDeadband(Math.hypot(x, y), 0.03);
+    Rotation2d linearDirection = new Rotation2d(x, y);
+
+    // Square magnitude
+    linearMagnitude = linearMagnitude * linearMagnitude;
+
+    // Calcaulate new linear velocity
+    Translation2d linearVelocity =
+        new Pose2d(new Translation2d(), linearDirection)
+            .transformBy(new Transform2d(linearMagnitude, 0.0, new Rotation2d()))
+            .getTranslation();
+    
+    return linearVelocity;
   }
 
   public Command driveCommand(
