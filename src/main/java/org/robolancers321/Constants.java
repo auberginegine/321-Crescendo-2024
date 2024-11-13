@@ -3,12 +3,12 @@ package org.robolancers321;
 
 import com.ctre.phoenix6.configs.CANcoderConfiguration;
 import com.pathplanner.lib.path.PathConstraints;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
@@ -41,8 +41,9 @@ public final class Constants {
     public static final double kTrackWidthMeters = Units.inchesToMeters(22.0);
     public static final double kWheelBaseMeters = Units.inchesToMeters(26.0);
 
-    public static final double kMaxSpeedMetersPerSecond = 5.0;
-    public static final double kMaxOmegaRadiansPerSecond = 1.5 * Math.PI;
+    public static final double kMaxSpeedMetersPerSecond = Units.feetToMeters(17.1); //5.0
+    public static final double kMaxAccelerationPerSecondSquared = Units.feetToMeters(75); //from 6328
+    public static final double kMaxOmegaRadiansPerSecond = 1.5 * Math.PI; 
 
     public static final double kMaxTeleopSpeedPercent = 1.0;
     public static final double kMaxTeleopRotationPercent = 1.0;
@@ -57,9 +58,6 @@ public final class Constants {
           new Translation2d(-0.5 * kTrackWidthMeters, -0.5 * kWheelBaseMeters), // back right
           new Translation2d(-0.5 * kTrackWidthMeters, 0.5 * kWheelBaseMeters) // back left
         };
-
-    public static final SwerveDriveKinematics kSwerveKinematics =
-        new SwerveDriveKinematics(moduleTranslations);
 
     public static double kSecondOrderKinematicsDt = 0.2;
 
