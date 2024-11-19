@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -80,9 +81,8 @@ public class Drivetrain extends SubsystemBase {
         new SwerveParser(swerveJsonDirectory)
             .createSwerveDrive(Constants.DrivetrainConstants.kMaxSpeedMetersPerSecond);
 
-
-            SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH; 
-
+    SwerveDriveTelemetry.verbosity = TelemetryVerbosity.HIGH;
+    PhotonCamera.setVersionCheckEnabled(false);
     this.mainCamera = new PhotonCamera(DrivetrainConstants.kMainCameraName);
     this.noteCamera = new PhotonCamera(DrivetrainConstants.kNoteCameraName);
 
@@ -105,7 +105,8 @@ public class Drivetrain extends SubsystemBase {
   }
 
   private void configureSwerve() {
-    swerveDrive.swerveController.setMaximumAngularVelocity(Constants.DrivetrainConstants.kMaxOmegaRadiansPerSecond);
+    swerveDrive.swerveController.setMaximumAngularVelocity(
+        Constants.DrivetrainConstants.kMaxOmegaRadiansPerSecond);
     swerveDrive.setHeadingCorrection(
         false); // Heading correction should only be used while controlling the robot via angle.
     swerveDrive.setCosineCompensator(
@@ -118,7 +119,8 @@ public class Drivetrain extends SubsystemBase {
     swerveDrive.setModuleEncoderAutoSynchronize(
         false, 1); // Enable if you want to resynchronize your absolute encoders and motor encoders
     // periodically when they are not moving.
-    // swerveDrive.setChassisDiscretization(true, false, Constants.DrivetrainConstants.kSecondOrderKinematicsDt);
+    // swerveDrive.setChassisDiscretization(true, false,
+    // Constants.DrivetrainConstants.kSecondOrderKinematicsDt);
     swerveDrive
         .pushOffsetsToEncoders(); // Set the absolute encoder to be used over the internal encoder
     // and push the offsets onto it. Throws warning if not possible
@@ -328,21 +330,20 @@ public class Drivetrain extends SubsystemBase {
     return -0.5 * bestTarget.getYaw();
   }
 
-  // private Translation2d getRelativeNoteLocation() {
-  //   PhotonPipelineResult latestResult = this.noteCamera.getLatestResult();
+  private Translation2d getRelativeNoteLocation() {
+    PhotonPipelineResult latestResult = this.noteCamera.getLatestResult();
 
-  //   if (!latestResult.hasTargets()) return new Translation2d();
+    if (!latestResult.hasTargets()) return new Translation2d();
 
-  //   PhotonTrackedTarget bestTarget = latestResult.getBestTarget();
+    PhotonTrackedTarget bestTarget = latestResult.getBestTarget();
 
-  //   // TODO: plus or minus mount pitch?
-  //   double dz =
-  //        Units.inchesToMeters(10)
-  //           / Math.tan((-bestTarget.getPitch() + 24) * Math.PI / 180.0);
-  //   double dx = dz * Math.tan(bestTarget.getYaw() * Math.PI / 180.0);
+    // TODO: plus or minus mount pitch?
+    double dz =
+        Units.inchesToMeters(10) / Math.tan((-bestTarget.getPitch() + 24) * Math.PI / 180.0);
+    double dx = dz * Math.tan(bestTarget.getYaw() * Math.PI / 180.0);
 
-  //   return new Translation2d(dx, dz);
-  // }
+    return new Translation2d(dx, dz);
+  }
 
   private void initTuning() {
     SmartDashboard.putNumber(
@@ -400,7 +401,10 @@ public class Drivetrain extends SubsystemBase {
     // set desired module states to target states
     // SwerveModuleState[] states = new SwerveModuleState[4];
     for (int i = 0; i < 4; i++) {
-      modules[i].setDesiredState(new SwerveModuleState(targetVelocity, Rotation2d.fromDegrees(targetHeading)), false, true);
+      modules[i].setDesiredState(
+          new SwerveModuleState(targetVelocity, Rotation2d.fromDegrees(targetHeading)),
+          false,
+          true);
     }
 
     // log heading and velocity error
@@ -496,11 +500,11 @@ public class Drivetrain extends SubsystemBase {
 
           // TODO: uncomment for aim assist
 
-          // double headingControllerOutput =
-          //     -this.headingController.calculate(this.getNoteAngle(), 0.0);
+          double headingControllerOutput =
+              this.swerveDrive.swerveController.thetaController.calculate(this.getNoteAngle(), 0.0);
 
-          // if (Math.abs(this.getNoteAngle()) > DrivetrainConstants.kHeadingTolerance)
-          //   omega += 0.5 * headingControllerOutput;
+          if (Math.abs(this.getNoteAngle()) > DrivetrainConstants.kHeadingTolerance)
+            omega += 0.5 * headingControllerOutput;
 
           // Translation2d strafeVec =
           //     new Translation2d(
@@ -517,7 +521,8 @@ public class Drivetrain extends SubsystemBase {
           //         .rotateBy(Rotation2d.fromDegrees(90.0));
 
           // ChassisSpeeds speeds =
-          // swerveDrive.swerveController.getTargetSpeeds(controller.getLeftY(),
+          //     swerveDrive.swerveController.getTargetSpeeds(
+          //         controller.getLeftY(),
           //         controller.getLeftX(),
           //         controller.getRightX() * Math.PI,
           //         swerveDrive.getOdometryHeading().getRadians(),
@@ -528,8 +533,10 @@ public class Drivetrain extends SubsystemBase {
           Translation2d strafeVec =
               SwerveMath.scaleTranslation(
                   new Translation2d(
-                      -MathUtil.applyDeadband(controller.getLeftY(), 0.03) * swerveDrive.getMaximumVelocity(),
-                      -MathUtil.applyDeadband(controller.getLeftX(), 0.03) * swerveDrive.getMaximumVelocity()),
+                      -MathUtil.applyDeadband(controller.getLeftY(), 0.03)
+                          * swerveDrive.getMaximumVelocity(),
+                      -MathUtil.applyDeadband(controller.getLeftX(), 0.03)
+                          * swerveDrive.getMaximumVelocity()),
                   0.8);
 
           if (MyAlliance.isRed()) strafeVec = strafeVec.rotateBy(Rotation2d.fromDegrees(180));
@@ -663,19 +670,19 @@ public class Drivetrain extends SubsystemBase {
 
   public Command zeroToPose(Pose2d pose) {
     return runOnce(
-            () -> {
-              Pose2d flippedPose;
-              if (MyAlliance.isRed()) {
-                flippedPose = GeometryUtil.flipFieldPose(pose);
-              } else {
-                flippedPose = pose;
-              }
-              resetPose(flippedPose);
-            }); 
+        () -> {
+          Pose2d flippedPose;
+          if (MyAlliance.isRed()) {
+            flippedPose = GeometryUtil.flipFieldPose(pose);
+          } else {
+            flippedPose = pose;
+          }
+          resetPose(flippedPose);
+        });
   }
 
   public Command zeroToPath(PathPlannerPath path) {
-    return zeroToPose(path.getPreviewStartingHolonomicPose()); 
+    return zeroToPose(path.getPreviewStartingHolonomicPose());
   }
 
   public Command sysIdDriveMotorCommand() {
